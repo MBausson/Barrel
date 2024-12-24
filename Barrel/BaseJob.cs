@@ -2,7 +2,11 @@
 
 public abstract class BaseJob
 {
-    protected internal readonly Guid JobId = Guid.NewGuid();
+    public virtual JobPriority JobPriority { get; } = JobPriority.Medium;
+
+    public JobState JobState { get; internal set; } = JobState.NotStarted;
+
+    public readonly Guid JobId = Guid.NewGuid();
 
     protected internal virtual void BeforeSchedule() { }
 

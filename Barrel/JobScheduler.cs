@@ -1,7 +1,11 @@
 ﻿namespace Barrel;
 
-public class JobScheduler
+public class JobScheduler(JobSchedulerConfiguration configuration)
 {
+    private readonly JobThreadHandler _threadHandler = new(configuration.MaxThreads);
+
+    //  TODO: For job delay & priority, define a configuration class
+
     /// <summary>
     /// Schedules a job to run with no delay.
     /// </summary>
@@ -30,15 +34,6 @@ public class JobScheduler
     /// <param name="delay">Delay before invoking the job. The countdown starts on this method's call</param>
     public void Schedule<T>(T job, TimeSpan delay) where T : BaseJob
     {
-        Task.Run(async () =>
-        {
-            if (delay != TimeSpan.Zero)
-            {
-                await Task.Delay(delay);
-            }
-
-            job.BeforeSchedule();
-            job.Perform();
-        });
+        _threadHandler.EnqueueJob(job, delay);
     }
 }
