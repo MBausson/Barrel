@@ -5,9 +5,10 @@ namespace Barrel;
 internal class JobThreadHandler : IDisposable
 {
     //  The semaphore ensures that we aren't using more threads than we should
-    private SemaphoreSlim _semaphore;
-    private ConcurrentQueue<(BaseJob job, TimeSpan delay)> _jobQueue;
-    private CancellationTokenSource _cancellationTokenSource;
+    private readonly SemaphoreSlim _semaphore;
+    //  Queues of job to run. These jobs should be ran ASAP, according to their priority
+    private readonly ConcurrentQueue<(BaseJob job, TimeSpan delay)> _jobQueue;
+    private readonly CancellationTokenSource _cancellationTokenSource;
 
     public JobThreadHandler(int maxThreads)
     {
