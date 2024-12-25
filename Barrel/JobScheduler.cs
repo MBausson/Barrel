@@ -1,10 +1,17 @@
-﻿namespace Barrel;
+﻿using Barrel.Configuration;
 
-public class JobScheduler(JobSchedulerConfiguration configuration)
+namespace Barrel;
+
+public class JobScheduler
 {
-    private readonly JobThreadHandler _threadHandler = new(configuration.MaxThreads);
+    private readonly JobSchedulerConfiguration _configuration;
+    private readonly JobThreadHandler _threadHandler;
 
-    //  TODO: For job delay & priority, define a configuration class
+    public JobScheduler(JobSchedulerConfigurationBuilder configurationBuilder)
+    {
+        _configuration = configurationBuilder.Build();
+        _threadHandler = new JobThreadHandler(_configuration);
+    }
 
     /// <summary>
     /// Schedules a job to run with no delay.

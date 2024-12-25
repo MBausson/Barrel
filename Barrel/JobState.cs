@@ -19,7 +19,11 @@ public enum JobState
     /// </summary>
     Running,
     /// <summary>
-    /// State of a job that has been executed. <b>Currently</b>, this state does not denote if the job has failed or not.
+    /// State of a job that has been successfully executed
     /// </summary>
-    Done
+    Success,
+    /// <summary>
+    /// State of a job that whose execution has failed, due to an unexpected exception.
+    /// </summary>
+    Failed
 }

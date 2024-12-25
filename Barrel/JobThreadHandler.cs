@@ -1,18 +1,22 @@
 ﻿using System.Collections.Concurrent;
+using Barrel.Configuration;
 
 namespace Barrel;
 
 internal class JobThreadHandler : IDisposable
 {
+    private readonly JobSchedulerConfiguration _configuration;
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
     //  Queues of job to run. These jobs should be ran ASAP, according to their priority
     private readonly ConcurrentQueue<(BaseJob job, TimeSpan delay)> _jobQueue;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
-    public JobThreadHandler(int maxThreads)
+    public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
-        _semaphore = new SemaphoreSlim(maxThreads, maxThreads);
+        _configuration = configuration;
+
+        _semaphore = new SemaphoreSlim(_configuration.MaxThreads);
         _jobQueue = new();
         _cancellationTokenSource = new();
 
@@ -31,7 +35,7 @@ internal class JobThreadHandler : IDisposable
         {
             if (!_jobQueue.TryDequeue(out (BaseJob job, TimeSpan delay) item))
             {
-                await Task.Delay(100);
+                await Task.Delay(_configuration.QueuePollingRate);
                 continue;
             }
 
@@ -45,10 +49,16 @@ internal class JobThreadHandler : IDisposable
                 {
                     await Task.Delay(item.delay);
                     item.job.Perform();
+                    item.job.JobState = JobState.Running;
+                }
+                catch (Exception)
+                {
+                    //  TODO: Rethrow the error to the main thread.
+                    item.job.JobState = JobState.Failed;
+                    throw;
                 }
                 finally
                 {
-                    item.job.JobState = JobState.Done;
                     _semaphore.Release();
                 }
             });
