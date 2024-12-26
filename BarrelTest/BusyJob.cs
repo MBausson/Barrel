@@ -2,10 +2,16 @@
 
 namespace BarrelTest;
 
-public class BusyJob(int jobDurationMilliseconds = 500) : BaseJob
+public class BusyJob(int jobDurationMilliseconds) : BaseJob
 {
+    private readonly int _jobDurationMilliseconds = jobDurationMilliseconds;
+
+    public BusyJob() : this(600)
+    {
+    }
+
     protected override async Task PerformAsync()
     {
-        await Task.Delay(jobDurationMilliseconds);
+        await Task.Delay(_jobDurationMilliseconds);
     }
 }

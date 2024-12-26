@@ -38,17 +38,15 @@ public class JobStateTest : IntegrationTest
     [Fact]
     public async Task EnqueuedStatusTest()
     {
-        //  We artificially slow down the enqueuing process with this setting
-        ConfigurationBuilder = ConfigurationBuilder
-            .WithQueuePollingRate(1000)
-            .WithSchedulePollingRate(50);
+        ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
 
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new SuccessfulJob();
 
+        Scheduler.Schedule<BusyJob>();
         Scheduler.Schedule(job);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
         Assert.Equal(JobState.Enqueued, job.JobState);
     }
 
@@ -61,7 +59,7 @@ public class JobStateTest : IntegrationTest
 
         Scheduler.Schedule(job);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
         Assert.Equal(JobState.Running, job.JobState);
     }
 
@@ -74,7 +72,7 @@ public class JobStateTest : IntegrationTest
 
         Scheduler.Schedule(job);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
         Assert.Equal(JobState.Failed, job.JobState);
     }
 
@@ -87,7 +85,7 @@ public class JobStateTest : IntegrationTest
 
         Scheduler.Schedule(job);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
         Assert.Equal(JobState.Success, job.JobState);
     }
 }

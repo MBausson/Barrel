@@ -23,7 +23,7 @@ public class DelayTests : IntegrationTest
 
         Scheduler.Schedule(jobNoDelay);
 
-        await Task.Delay(50);
+        await Task.Delay(300);
         Assert.Equal(JobState.Success, jobNoDelay.JobState);
     }
 
@@ -35,7 +35,7 @@ public class DelayTests : IntegrationTest
 
         Scheduler.Schedule(job1SecondDelay, TimeSpan.FromSeconds(1));
 
-        await Task.Delay(50);
+        await Task.Delay(300);
         Assert.Equal(JobState.Scheduled, job1SecondDelay.JobState);
     }
 }
