@@ -26,5 +26,5 @@ public abstract class BaseJob
     /// <summary>
     /// Method called during the execution of a job.
     /// </summary>
-    protected internal abstract void Perform();
+    protected internal abstract Task PerformAsync();
 }

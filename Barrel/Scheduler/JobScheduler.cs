@@ -1,6 +1,6 @@
 ﻿using Barrel.Configuration;
 
-namespace Barrel;
+namespace Barrel.Scheduler;
 
 public class JobScheduler
 {

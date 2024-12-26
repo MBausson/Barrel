@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Barrel.Configuration;
 
-namespace Barrel;
+namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
@@ -9,7 +9,8 @@ internal class JobThreadHandler : IDisposable
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
     //  Queues of job to run. These jobs should be ran ASAP, according to their priority
-    private readonly ConcurrentQueue<(BaseJob job, TimeSpan delay)> _jobQueue;
+    private readonly ConcurrentQueue<BaseJob> _jobQueue;
+    private readonly SortedList<DateTime, BaseJob> _scheduledJobs;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
@@ -18,22 +19,49 @@ internal class JobThreadHandler : IDisposable
 
         _semaphore = new SemaphoreSlim(_configuration.MaxThreads);
         _jobQueue = new();
+        _scheduledJobs = new();
         _cancellationTokenSource = new();
 
         _ = Task.Run(ProcessQueue);
+        _ = Task.Run(ProcessSchedules);
     }
 
     public void EnqueueJob(BaseJob job, TimeSpan delay)
     {
         job.JobState = JobState.Enqueued;
-        _jobQueue.Enqueue((job, delay));
+
+        lock (_scheduledJobs)
+        {
+            _scheduledJobs.Add(DateTime.Now + delay, job);
+        }
+    }
+
+    private void ProcessSchedules()
+    {
+        while (!_cancellationTokenSource.Token.IsCancellationRequested)
+        {
+            IEnumerable<KeyValuePair<DateTime, BaseJob>> jobsToEnqueue;
+
+            lock (_scheduledJobs)
+            {
+                jobsToEnqueue = _scheduledJobs
+                    .Where(kv => kv.Key <= DateTime.Now)
+                    .ToArray();
+            }
+
+            foreach (var (date, job) in jobsToEnqueue)
+            {
+                _scheduledJobs.Remove(date);
+                _jobQueue.Enqueue(job);
+            }
+        }
     }
 
     private async Task ProcessQueue()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
-            if (!_jobQueue.TryDequeue(out (BaseJob job, TimeSpan delay) item))
+            if (!_jobQueue.TryDequeue(out var job))
             {
                 await Task.Delay(_configuration.QueuePollingRate);
                 continue;
@@ -41,20 +69,19 @@ internal class JobThreadHandler : IDisposable
 
             await _semaphore.WaitAsync();
 
-            item.job.JobState = JobState.Running;
+            job.JobState = JobState.Running;
 
             _ = Task.Run(async () =>
             {
                 try
                 {
-                    await Task.Delay(item.delay);
-                    item.job.Perform();
-                    item.job.JobState = JobState.Running;
+                    await job.PerformAsync();
+                    job.JobState = JobState.Success;
                 }
                 catch (Exception)
                 {
                     //  TODO: Rethrow the error to the main thread.
-                    item.job.JobState = JobState.Failed;
+                    job.JobState = JobState.Failed;
                     throw;
                 }
                 finally
