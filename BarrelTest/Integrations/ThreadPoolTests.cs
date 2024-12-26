@@ -41,14 +41,14 @@ public class ThreadPoolTests : IntegrationTest
         Scheduler.Schedule(firstJob);
         Scheduler.Schedule(secondJob);
 
-        await Task.Delay(100);
+        await Task.Delay(300);
 
         //  The pool is blocked by the first job.
         //  The second job should be waiting enqueued
         Assert.Equal(JobState.Running, firstJob.JobState);
         Assert.Equal(JobState.Enqueued, secondJob.JobState);
 
-        await Task.Delay(600);
+        await WaitForJobToEnd();
 
         //  Now the first job is done and the second one has already started
         Assert.Equal(JobState.Success, firstJob.JobState);

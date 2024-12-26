@@ -6,7 +6,7 @@ public class SuccessfulJob(TaskCompletionSource<bool> completionSource) : TestJo
 {
     protected override Task PerformAsync()
     {
-        CompletionSource.SetResult(true);
+        _ = Task.Delay(150).ContinueWith(_ => CompletionSource.SetResult(true));
         return Task.CompletedTask;
     }
 }
