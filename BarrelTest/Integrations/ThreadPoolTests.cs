@@ -19,28 +19,29 @@ public class ThreadPoolTests : IntegrationTest
     public async Task EmptyPoolTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new BusyJob();
+        var job = new BusyJob(CompletionSource);
 
         Scheduler.Schedule(job);
 
-        await Task.Delay(200);
+        await WaitForJobToEnd();
         Assert.NotEqual(JobState.Enqueued, job.JobState);
     }
 
     [Fact]
-    //  Flaky test
     public async Task FullPoolTest()
     {
+        var secondJobCompletionSource = new TaskCompletionSource<bool>();
+
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        var firstJob = new BusyJob();
-        var secondJob = new BusyJob();
+        var firstJob = new BusyJob(CompletionSource);
+        var secondJob = new BusyJob(secondJobCompletionSource);
 
         Scheduler.Schedule(firstJob);
         Scheduler.Schedule(secondJob);
 
-        await Task.Delay(200);
+        await Task.Delay(100);
 
         //  The pool is blocked by the first job.
         //  The second job should be waiting enqueued

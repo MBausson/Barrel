@@ -2,10 +2,11 @@
 
 namespace BarrelTest;
 
-public class SuccessfulJob : BaseJob
+public class SuccessfulJob(TaskCompletionSource<bool> completionSource) : TestJob(completionSource)
 {
     protected override Task PerformAsync()
     {
+        CompletionSource.SetResult(true);
         return Task.CompletedTask;
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Barrel;
-using Barrel.Configuration;
 using Barrel.Scheduler;
 using Xunit.Abstractions;
 
@@ -19,23 +18,23 @@ public class DelayTests : IntegrationTest
     public async Task JobNoDelayTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        SuccessfulJob jobNoDelay = new SuccessfulJob();
+        SuccessfulJob job = new SuccessfulJob(CompletionSource);
 
-        Scheduler.Schedule(jobNoDelay);
+        Scheduler.Schedule(job);
 
-        await Task.Delay(300);
-        Assert.Equal(JobState.Success, jobNoDelay.JobState);
+        await WaitForJobToEnd();
+        Assert.Equal(JobState.Success, job.JobState);
     }
 
     [Fact]
     public async Task JobWithDelayTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        SuccessfulJob job1SecondDelay = new SuccessfulJob();
+        SuccessfulJob job = new SuccessfulJob(CompletionSource);
 
-        Scheduler.Schedule(job1SecondDelay, TimeSpan.FromSeconds(1));
+        Scheduler.Schedule(job, TimeSpan.FromSeconds(1));
 
-        await Task.Delay(300);
-        Assert.Equal(JobState.Scheduled, job1SecondDelay.JobState);
+        await Task.Delay(100);
+        Assert.Equal(JobState.Scheduled, job.JobState);
     }
 }
