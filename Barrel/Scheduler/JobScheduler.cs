@@ -2,7 +2,7 @@
 
 namespace Barrel.Scheduler;
 
-public class JobScheduler
+public class JobScheduler : IDisposable
 {
     private readonly JobSchedulerConfiguration _configuration;
     private readonly JobThreadHandler _threadHandler;
@@ -42,5 +42,10 @@ public class JobScheduler
     public void Schedule<T>(T job, TimeSpan delay) where T : BaseJob
     {
         _threadHandler.ScheduleJob(job, delay);
+    }
+
+    public void Dispose()
+    {
+        _threadHandler.Dispose();
     }
 }

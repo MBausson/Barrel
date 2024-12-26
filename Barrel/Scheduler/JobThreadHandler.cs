@@ -8,7 +8,7 @@ internal class JobThreadHandler : IDisposable
     private readonly JobSchedulerConfiguration _configuration;
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
-    //  Queues of job to run. These jobs should be ran ASAP, according to their priority
+    //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentQueue<BaseJob> _jobQueue;
     private readonly SortedList<DateTime, BaseJob> _scheduledJobs;
     private readonly CancellationTokenSource _cancellationTokenSource;

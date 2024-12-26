@@ -1,22 +1,27 @@
 ﻿using Barrel;
 using Barrel.Scheduler;
+using Xunit.Abstractions;
 
 namespace BarrelTest.Integrations;
 
 /// <summary>
-/// Tests related to the scheduler's thread pool.
+/// Tests related to the Scheduler's thread pool.
 /// We ensure here that we do not run (concurrently) more jobs than we should.
 /// When the pool is full of jobs, incoming jobs will wait as Enqueued jobs.
 /// </summary>
 public class ThreadPoolTests : IntegrationTest
 {
+    public ThreadPoolTests(ITestOutputHelper output) : base(output)
+    {
+    }
+
     [Fact]
     public async Task EmptyPoolTest()
     {
-        var scheduler = new JobScheduler(ConfigurationBuilder);
+        Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new BusyJob();
 
-        scheduler.Schedule(job);
+        Scheduler.Schedule(job);
 
         await Task.Delay(100);
         Assert.NotEqual(JobState.Enqueued, job.JobState);
@@ -26,13 +31,13 @@ public class ThreadPoolTests : IntegrationTest
     public async Task FullPoolTest()
     {
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
-        var scheduler = new JobScheduler(ConfigurationBuilder);
+        Scheduler = new JobScheduler(ConfigurationBuilder);
 
         var firstJob = new BusyJob();
         var secondJob = new BusyJob();
 
-        scheduler.Schedule(firstJob);
-        scheduler.Schedule(secondJob);
+        Scheduler.Schedule(firstJob);
+        Scheduler.Schedule(secondJob);
 
         await Task.Delay(100);
 

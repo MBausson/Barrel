@@ -2,10 +2,10 @@
 
 namespace BarrelTest;
 
-public class SimpleJob : BaseJob
+public class FailedJob : BaseJob
 {
     protected override Task PerformAsync()
     {
-        return Task.CompletedTask;
+        throw new Exception("Predictable job exception");
     }
 }

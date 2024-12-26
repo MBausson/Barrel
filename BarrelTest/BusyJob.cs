@@ -2,10 +2,10 @@
 
 namespace BarrelTest;
 
-public class BusyJob(int delay = 500) : BaseJob
+public class BusyJob(int jobDurationMilliseconds = 500) : BaseJob
 {
     protected override async Task PerformAsync()
     {
-        await Task.Delay(delay);
+        await Task.Delay(jobDurationMilliseconds);
     }
 }
