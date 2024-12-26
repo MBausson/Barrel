@@ -26,9 +26,9 @@ internal class JobThreadHandler : IDisposable
         _ = Task.Run(ProcessSchedules);
     }
 
-    public void EnqueueJob(BaseJob job, TimeSpan delay)
+    public void ScheduleJob(BaseJob job, TimeSpan delay)
     {
-        job.JobState = JobState.Enqueued;
+        job.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
         {
@@ -36,11 +36,12 @@ internal class JobThreadHandler : IDisposable
         }
     }
 
-    private void ProcessSchedules()
+    //  Processes jobs that are still in delay to be enqueued
+    private async Task ProcessSchedules()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
-            IEnumerable<KeyValuePair<DateTime, BaseJob>> jobsToEnqueue;
+            KeyValuePair<DateTime, BaseJob>[] jobsToEnqueue;
 
             lock (_scheduledJobs)
             {
@@ -49,14 +50,23 @@ internal class JobThreadHandler : IDisposable
                     .ToArray();
             }
 
+            if (jobsToEnqueue.Length == 0)
+            {
+                await Task.Delay(_configuration.SchedulePollingRate);
+                continue;
+            }
+
             foreach (var (date, job) in jobsToEnqueue)
             {
                 _scheduledJobs.Remove(date);
                 _jobQueue.Enqueue(job);
+                job.JobState = JobState.Enqueued;
             }
         }
     }
 
+    //  Processes jobs that have no delay anymore
+    //  Complies with the thread pool size limitations
     private async Task ProcessQueue()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)

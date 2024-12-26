@@ -1,11 +1,10 @@
-﻿using Barrel.Configuration;
-
-namespace Barrel;
+﻿namespace Barrel.Configuration;
 
 public class JobSchedulerConfigurationBuilder
 {
     public int MaxThreads { get; private set; } = 5;
     public int QueuePollingRate { get; private set; } = 100;
+    public int SchedulePollingRate { get; private set; } = 100;
 
     public JobSchedulerConfigurationBuilder WithMaxThreads(int maxThreads)
     {
@@ -18,9 +17,18 @@ public class JobSchedulerConfigurationBuilder
 
     public JobSchedulerConfigurationBuilder WithQueuePollingRate(int milliseconds)
     {
-        if (milliseconds < 1) throw new ArgumentException("QueuePollingRate property must be greater than zero");
+        if (milliseconds < 0) throw new ArgumentException("QueuePollingRate property must be positive");
 
         QueuePollingRate = milliseconds;
+
+        return this;
+    }
+
+    public JobSchedulerConfigurationBuilder WithSchedulePollingRate(int milliseconds)
+    {
+        if (milliseconds < 0) throw new ArgumentException("SchedulePollingRate property must be positive");
+
+        SchedulePollingRate = milliseconds;
 
         return this;
     }

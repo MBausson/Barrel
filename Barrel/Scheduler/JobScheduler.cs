@@ -41,6 +41,6 @@ public class JobScheduler
     /// <param name="delay">Delay before invoking the job. The countdown starts on this method's call</param>
     public void Schedule<T>(T job, TimeSpan delay) where T : BaseJob
     {
-        _threadHandler.EnqueueJob(job, delay);
+        _threadHandler.ScheduleJob(job, delay);
     }
 }
