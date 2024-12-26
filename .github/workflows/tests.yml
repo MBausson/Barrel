@@ -1,0 +1,37 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Testing
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-
+
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore dependencies
+        run: dotnet restore Barrel
+
+      - name: Build Barrel
+        run: dotnet build --configuration Release Barrel --nologo -v q --property WarningLevel=0 /clp:ErrorsOnly
+
+      - name: Run tests
+        run: dotnet test --configuration Release BarrelTest --collect:"XPlat Code Coverage" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="./TestResults/"
