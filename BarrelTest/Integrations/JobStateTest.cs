@@ -59,7 +59,8 @@ public class JobStateTest : IntegrationTest
 
         Scheduler.Schedule(job);
 
-        await Task.Delay(300);
+        //  TODO: Improve this test, the Task.Delay might make it a flaky test
+        await Task.Delay(800);
         Assert.Equal(JobState.Running, job.JobState);
     }
 

@@ -16,7 +16,7 @@ public class IntegrationTest : IDisposable
     protected readonly TaskCompletionSource<bool> CompletionSource = new();
     protected JobSchedulerConfigurationBuilder ConfigurationBuilder = new();
     protected JobScheduler? Scheduler;
-    protected int JobWaitTimeout = 5000;
+    protected readonly int JobWaitTimeout = 5000;
 
     public IntegrationTest(ITestOutputHelper output)
     {
@@ -35,6 +35,5 @@ public class IntegrationTest : IDisposable
     public void Dispose()
     {
         if (Scheduler is not null) Scheduler.Dispose();
-        // CompletionSource.Task.Dispose();
     }
 }
