@@ -35,13 +35,13 @@ public class ThreadPoolTests : IntegrationTest
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        var firstJob = new BusyJob(CompletionSource);
+        var firstJob = new BusyJob(CompletionSource, jobDurationMilliseconds: 2000);
         var secondJob = new BusyJob(secondJobCompletionSource);
 
         Scheduler.Schedule(firstJob);
         Scheduler.Schedule(secondJob);
 
-        await Task.Delay(300);
+        await Task.Delay(700);
 
         //  The pool is blocked by the first job.
         //  The second job should be waiting enqueued
