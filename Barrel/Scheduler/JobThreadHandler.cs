@@ -85,6 +85,7 @@ internal class JobThreadHandler : IDisposable
             {
                 try
                 {
+                    await job.BeforePerformAsync();
                     await job.PerformAsync();
                     job.JobState = JobState.Success;
                 }
