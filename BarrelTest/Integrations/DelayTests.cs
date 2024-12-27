@@ -18,11 +18,11 @@ public class DelayTests : IntegrationTest
     public async Task JobNoDelayTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        SuccessfulJob job = new SuccessfulJob(CompletionSource);
+        SuccessfulJob job = new SuccessfulJob();
 
         Scheduler.Schedule(job);
+        await WaitForJobToEnd(job);
 
-        await WaitForJobToEnd();
         Assert.Equal(JobState.Success, job.JobState);
     }
 
@@ -30,11 +30,15 @@ public class DelayTests : IntegrationTest
     public async Task JobWithDelayTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        SuccessfulJob job = new SuccessfulJob(CompletionSource);
+        SuccessfulJob job = new SuccessfulJob();
+
+        var beforeScheduleTime = DateTime.Now;
 
         Scheduler.Schedule(job, TimeSpan.FromSeconds(1));
+        await WaitForJobToEnd(job);
 
-        await Task.Delay(100);
-        Assert.Equal(JobState.Scheduled, job.JobState);
+        var afterScheduleTime = DateTime.Now;
+
+        Assert.InRange(afterScheduleTime - beforeScheduleTime, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
     }
 }

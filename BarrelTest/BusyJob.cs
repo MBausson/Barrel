@@ -1,11 +1,24 @@
 ﻿namespace BarrelTest;
 
-public class BusyJob(TaskCompletionSource<bool> completionSource, int jobDurationMilliseconds = 600)
-    : TestJob(completionSource)
+public class BusyJob : TestJob
 {
+    private readonly int _jobDurationMilliseconds = 600;
+
+    public BusyJob()
+    {
+
+    }
+
+    public BusyJob(int jobDurationMilliseconds)
+    {
+        if (jobDurationMilliseconds < 0) throw new ArgumentOutOfRangeException(nameof(jobDurationMilliseconds));
+
+        _jobDurationMilliseconds = jobDurationMilliseconds;
+    }
+
     protected override async Task PerformAsync()
     {
-        await Task.Delay(jobDurationMilliseconds);
-        _ = Task.Delay(150).ContinueWith(_ => CompletionSource.SetResult(true));
+        await Task.Delay(_jobDurationMilliseconds);
+        _ = Task.Delay(300).ContinueWith(_ => JobFinishedSource.SetResult(true));
     }
 }

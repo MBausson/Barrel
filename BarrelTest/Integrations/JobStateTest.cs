@@ -17,7 +17,7 @@ public class JobStateTest : IntegrationTest
     [Fact]
     public void NotStartedStatusTest()
     {
-        var job = new SuccessfulJob(CompletionSource);
+        var job = new SuccessfulJob();
 
         Assert.Equal(JobState.NotStarted, job.JobState);
     }
@@ -27,7 +27,7 @@ public class JobStateTest : IntegrationTest
     public void ScheduledStatusTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new SuccessfulJob(CompletionSource);
+        var job = new SuccessfulJob();
 
         Scheduler.Schedule(job, TimeSpan.FromSeconds(1));
 
@@ -39,14 +39,15 @@ public class JobStateTest : IntegrationTest
     public async Task EnqueuedStatusTest()
     {
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
-
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new SuccessfulJob(new TaskCompletionSource<bool>());
 
-        Scheduler.Schedule(new BusyJob(CompletionSource));
+        var busyJob = new BusyJob(jobDurationMilliseconds: 2000);
+        var job = new SuccessfulJob();
+
+        Scheduler.Schedule(busyJob);
         Scheduler.Schedule(job);
+        await WaitForJobToRun(busyJob);
 
-        await Task.Delay(100);
         Assert.Equal(JobState.Enqueued, job.JobState);
     }
 
@@ -55,12 +56,11 @@ public class JobStateTest : IntegrationTest
     public async Task RunningStatusTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new BusyJob(CompletionSource, jobDurationMilliseconds: 2000);
+        var job = new BusyJob(jobDurationMilliseconds: 2000);
 
         Scheduler.Schedule(job);
+        await WaitForJobToRun(job);
 
-        //  TODO: Improve this test, the Task.Delay might make it a flaky test
-        await Task.Delay(800);
         Assert.Equal(JobState.Running, job.JobState);
     }
 
@@ -69,11 +69,11 @@ public class JobStateTest : IntegrationTest
     public async Task FailedStatusTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new FailedJob(CompletionSource);
+        var job = new FailedJob();
 
         Scheduler.Schedule(job);
+        await WaitForJobToEnd(job);
 
-        await WaitForJobToEnd();
         Assert.Equal(JobState.Failed, job.JobState);
     }
 
@@ -82,11 +82,11 @@ public class JobStateTest : IntegrationTest
     public async Task SuccessStatusTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new SuccessfulJob(CompletionSource);
+        var job = new SuccessfulJob();
 
         Scheduler.Schedule(job);
+        await WaitForJobToEnd(job);
 
-        await WaitForJobToEnd();
         Assert.Equal(JobState.Success, job.JobState);
     }
 }

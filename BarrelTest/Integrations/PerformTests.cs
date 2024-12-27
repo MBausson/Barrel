@@ -3,26 +3,26 @@ using Xunit.Abstractions;
 
 namespace BarrelTest.Integrations;
 
-//  Ensures that jobs' perfom method are executed
+//  Ensures that jobs' perform methods are executed
 public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
 {
     [Fact]
     public async Task PerformAndBeforePerformTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new PerformProofJob(CompletionSource);
+        var job = new PerformProofJob();
 
         Assert.False(job.PerformExecuted);
         Assert.False(job.BeforePerformExecuted);
 
         Scheduler.Schedule(job);
-        await WaitForJobToEnd();
+        await WaitForJobToEnd(job);
 
         Assert.True(job.PerformExecuted);
         Assert.True(job.BeforePerformExecuted);
     }
 
-    private class PerformProofJob(TaskCompletionSource<bool> completionSource) : TestJob(completionSource)
+    private class PerformProofJob : TestJob
     {
         public bool PerformExecuted { get; private set; }
         public bool BeforePerformExecuted { get; private set; }
@@ -38,7 +38,7 @@ public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
         {
             PerformExecuted = true;
 
-            _ = Task.Delay(150).ContinueWith(_ => CompletionSource.SetResult(true));
+            _ = Task.Delay(150).ContinueWith(_ => JobFinishedSource.SetResult(true));
             return Task.CompletedTask;
         }
     }

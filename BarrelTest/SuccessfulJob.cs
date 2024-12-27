@@ -1,12 +1,10 @@
-﻿using Barrel;
+﻿namespace BarrelTest;
 
-namespace BarrelTest;
-
-public class SuccessfulJob(TaskCompletionSource<bool> completionSource) : TestJob(completionSource)
+public class SuccessfulJob : TestJob
 {
     protected override Task PerformAsync()
     {
-        _ = Task.Delay(150).ContinueWith(_ => CompletionSource.SetResult(true));
+        _ = Task.Delay(300).ContinueWith(_ => JobFinishedSource.SetResult(true));
         return Task.CompletedTask;
     }
 }

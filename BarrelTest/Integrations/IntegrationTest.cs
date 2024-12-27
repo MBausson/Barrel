@@ -13,7 +13,6 @@ namespace BarrelTest.Integrations;
 public class IntegrationTest : IDisposable
 {
     protected readonly ITestOutputHelper Output;
-    protected readonly TaskCompletionSource<bool> CompletionSource = new();
     protected JobSchedulerConfigurationBuilder ConfigurationBuilder = new();
     protected JobScheduler? Scheduler;
     protected readonly int JobWaitTimeout = 5000;
@@ -27,9 +26,14 @@ public class IntegrationTest : IDisposable
         Output = output;
     }
 
-    protected async Task WaitForJobToEnd(TaskCompletionSource<bool>? completionSource = null)
+    protected async Task WaitForJobToRun(TestJob job)
     {
-        await Task.WhenAny(completionSource?.Task ?? CompletionSource.Task, Task.Delay(JobWaitTimeout));
+        await Task.WhenAny(job.JobRunningSource.Task, Task.Delay(JobWaitTimeout));
+    }
+
+    protected async Task WaitForJobToEnd(TestJob job)
+    {
+        await Task.WhenAny(job.JobFinishedSource.Task, Task.Delay(JobWaitTimeout));
     }
 
     public void Dispose()
