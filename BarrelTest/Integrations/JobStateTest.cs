@@ -29,7 +29,7 @@ public class JobStateTest : IntegrationTest
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new SuccessfulJob();
 
-        Scheduler.Schedule(job, TimeSpan.FromSeconds(1));
+        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
 
         Assert.Equal(JobState.Scheduled, job.JobState);
     }

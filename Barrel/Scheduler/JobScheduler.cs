@@ -18,31 +18,33 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     /// <typeparam name="T">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
-    public void Schedule<T>() where T : BaseJob, new() => Schedule(new T(), TimeSpan.Zero);
+    public void Schedule<T>() where T : BaseJob, new() => Schedule(new T(), ScheduleOptions.Default);
 
     /// <summary>
     /// Schedules a job to run with a specified delay.
     /// </summary>
-    /// <param name="delay">Delay before invoking the job. The countdown starts on this method's call</param>
+    /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     /// <typeparam name="T">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
-    public void Schedule<T>(TimeSpan delay) where T : BaseJob, new() => Schedule(new T(), delay);
+    public void Schedule<T>(ScheduleOptions options) where T : BaseJob, new() => Schedule(new T(), options);
 
     /// <summary>
     /// Schedules a job to run with no delay.
     /// </summary>
     /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
-    public void Schedule<T>(T job) where T : BaseJob => Schedule(job, TimeSpan.Zero);
+    public void Schedule<T>(T job) where T : BaseJob => Schedule(job, ScheduleOptions.Default);
 
     /// <summary>
     /// Schedules a job to run with a specified delay.
     /// </summary>
     /// <param name="job">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</param>
-    /// <param name="delay">Delay before invoking the job. The countdown starts on this method's call</param>
-    public void Schedule<T>(T job, TimeSpan delay) where T : BaseJob
+    /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
+    public void Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
     {
-        _threadHandler.ScheduleJob(job, delay);
+        _threadHandler.ScheduleJob(job, options.Delay);
     }
+
+    //  TODO: Add a .WaitAll method to wait for all jobs to finish
 
     public void Dispose()
     {

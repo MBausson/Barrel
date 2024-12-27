@@ -6,7 +6,6 @@ public class BusyJob : TestJob
 
     public BusyJob()
     {
-
     }
 
     public BusyJob(int jobDurationMilliseconds)
@@ -19,6 +18,7 @@ public class BusyJob : TestJob
     protected override async Task PerformAsync()
     {
         await Task.Delay(_jobDurationMilliseconds);
-        _ = Task.Delay(300).ContinueWith(_ => JobFinishedSource.SetResult(true));
+
+        await base.PerformAsync();
     }
 }

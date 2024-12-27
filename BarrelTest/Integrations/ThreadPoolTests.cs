@@ -50,7 +50,7 @@ public class ThreadPoolTests : IntegrationTest
         Assert.Equal(JobState.Running, firstJob.JobState);
         Assert.Equal(JobState.Enqueued, secondJob.JobState);
 
-        await WaitForJobToEnd(firstJob);
+        await WaitForJobToRun(secondJob);
 
         //  Now the first job is done and the second one has already started
         Assert.Equal(JobState.Success, firstJob.JobState);

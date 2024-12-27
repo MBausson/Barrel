@@ -34,7 +34,7 @@ public class DelayTests : IntegrationTest
 
         var beforeScheduleTime = DateTime.Now;
 
-        Scheduler.Schedule(job, TimeSpan.FromSeconds(1));
+        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
         await WaitForJobToEnd(job);
 
         var afterScheduleTime = DateTime.Now;
