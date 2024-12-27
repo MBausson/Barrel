@@ -34,4 +34,4 @@ jobs:
         run: dotnet build --configuration Release Barrel --nologo -v q --property WarningLevel=0 /clp:ErrorsOnly
 
       - name: Run tests
-        run: dotnet test --configuration Release BarrelTest --collect:"XPlat Code Coverage" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="./TestResults/"
+        run: dotnet test --configuration Release BarrelTest --collect:"XPlat Code Coverage" /p:CollectCoverage=true /p:CoverletOutputFormat=opencover /p:CoverletOutput="./TestResults/" /p:DefineConstants="CI"
