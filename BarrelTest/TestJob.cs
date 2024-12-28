@@ -1,6 +1,4 @@
-﻿using Barrel;
-
-namespace BarrelTest;
+﻿namespace BarrelTest;
 
 public class TestJob : BaseJob
 {

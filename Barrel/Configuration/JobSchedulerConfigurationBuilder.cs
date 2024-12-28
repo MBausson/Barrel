@@ -2,11 +2,14 @@
 
 public class JobSchedulerConfigurationBuilder
 {
+    /// <inheritdoc cref="WithMaxThreads"/>
     public int MaxThreads { get; private set; } = 5;
+    /// <inheritdoc cref="WithQueuePollingRate"/>
     public int QueuePollingRate { get; private set; } = 100;
+    /// <inheritdoc cref="WithSchedulePollingRate"/>
     public int SchedulePollingRate { get; private set; } = 100;
 
-    /// <inheritdoc cref="JobSchedulerConfiguration.MaxThreads"/>
+    /// <inheritdoc cref="JobSchedulerConfiguration.MaxThreads" />
     public JobSchedulerConfigurationBuilder WithMaxThreads(int maxThreads)
     {
         if (maxThreads < 1) throw new ArgumentException("MaxThread property must be greater than zero");
@@ -16,7 +19,7 @@ public class JobSchedulerConfigurationBuilder
         return this;
     }
 
-    /// <inheritdoc cref="JobSchedulerConfiguration.QueuePollingRate"/>
+    /// <inheritdoc cref="JobSchedulerConfiguration.QueuePollingRate" />
     public JobSchedulerConfigurationBuilder WithQueuePollingRate(int milliseconds)
     {
         if (milliseconds < 0) throw new ArgumentException("QueuePollingRate property must be positive");
@@ -26,7 +29,7 @@ public class JobSchedulerConfigurationBuilder
         return this;
     }
 
-    /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate"/>
+    /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate" />
     public JobSchedulerConfigurationBuilder WithSchedulePollingRate(int milliseconds)
     {
         if (milliseconds < 0) throw new ArgumentException("SchedulePollingRate property must be positive");
@@ -36,9 +39,12 @@ public class JobSchedulerConfigurationBuilder
         return this;
     }
 
-    public JobSchedulerConfiguration Build() => new()
+    public JobSchedulerConfiguration Build()
     {
-        MaxThreads = MaxThreads,
-        QueuePollingRate = QueuePollingRate
-    };
+        return new JobSchedulerConfiguration
+        {
+            MaxThreads = MaxThreads,
+            QueuePollingRate = QueuePollingRate
+        };
+    }
 }

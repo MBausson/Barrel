@@ -1,13 +1,11 @@
-﻿using Barrel;
-using Barrel.Scheduler;
-using Xunit.Abstractions;
+﻿using Xunit.Abstractions;
 
 namespace BarrelTest.Integrations;
 
 /// <summary>
-/// Tests related to the Scheduler's thread pool.
-/// We ensure here that we do not run (concurrently) more jobs than we should.
-/// When the pool is full of jobs, incoming jobs will wait as Enqueued jobs.
+///     Tests related to the Scheduler's thread pool.
+///     We ensure here that we do not run (concurrently) more jobs than we should.
+///     When the pool is full of jobs, incoming jobs will wait as Enqueued jobs.
 /// </summary>
 public class ThreadPoolTests : IntegrationTest
 {
@@ -30,14 +28,14 @@ public class ThreadPoolTests : IntegrationTest
     //  This test really doesn't want to pass in CI, it's a flaky test
     //  To fix it, we should implement some kind of TaskCompletionSource but for the different states of a job
     //  Scheduled, Enqueued, Running(!)...
-    #if !CI
+#if !CI
     [Fact]
     public async Task FullPoolTest()
     {
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        var firstJob = new BusyJob(jobDurationMilliseconds: 2000);
+        var firstJob = new BusyJob(2000);
         var secondJob = new BusyJob();
 
         Scheduler.Schedule(firstJob);
@@ -56,5 +54,5 @@ public class ThreadPoolTests : IntegrationTest
         Assert.Equal(JobState.Success, firstJob.JobState);
         Assert.Equal(JobState.Running, secondJob.JobState);
     }
-    #endif
+#endif
 }

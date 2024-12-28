@@ -1,11 +1,8 @@
-﻿using Barrel;
-using Barrel.Scheduler;
-
-namespace BarrelTest.Units;
+﻿namespace BarrelTest.Units;
 
 public class ScheduleOptionsTests
 {
-    private ScheduleOptions _options = new();
+    private readonly ScheduleOptions _options = new();
 
     //  Ensures that WithDelay adds the right amount of delay
     [Fact]

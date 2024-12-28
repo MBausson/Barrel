@@ -24,7 +24,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
     public async Task WithOneRunningJob()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new BusyJob(jobDurationMilliseconds: 1000);
+        var job = new BusyJob(1000);
         var beforeTime = DateTime.Now;
 
         Scheduler.Schedule(job);
@@ -45,8 +45,8 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
     public async Task WithMultipleEnqueuedJobs()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var noDelayJob = new BusyJob(jobDurationMilliseconds: 1000);
-        var delayedJob = new BusyJob(jobDurationMilliseconds: 1000);
+        var noDelayJob = new BusyJob(1000);
+        var delayedJob = new BusyJob(1000);
         var beforeTime = DateTime.Now;
 
         Scheduler.Schedule(noDelayJob);

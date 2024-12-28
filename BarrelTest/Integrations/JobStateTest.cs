@@ -1,11 +1,9 @@
-﻿using Barrel;
-using Barrel.Scheduler;
-using Xunit.Abstractions;
+﻿using Xunit.Abstractions;
 
 namespace BarrelTest.Integrations;
 
 /// <summary>
-/// Tests related to jobs' status.
+///     Tests related to jobs' status.
 /// </summary>
 public class JobStateTest : IntegrationTest
 {
@@ -41,7 +39,7 @@ public class JobStateTest : IntegrationTest
         ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        var busyJob = new BusyJob(jobDurationMilliseconds: 2000);
+        var busyJob = new BusyJob(2000);
         var job = new SuccessfulJob();
 
         Scheduler.Schedule(busyJob);
@@ -56,7 +54,7 @@ public class JobStateTest : IntegrationTest
     public async Task RunningStatusTest()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var job = new BusyJob(jobDurationMilliseconds: 2000);
+        var job = new BusyJob(2000);
 
         Scheduler.Schedule(job);
         await WaitForJobToRun(job);

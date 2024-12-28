@@ -19,7 +19,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Barrel\Barrel.csproj" />
+        <ProjectReference Include="..\Barrel\Barrel.csproj"/>
     </ItemGroup>
 
 </Project>
