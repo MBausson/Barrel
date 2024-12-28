@@ -3,13 +3,13 @@
 namespace BarrelTest.Integrations;
 
 /// <summary>
-///     Tests related to the Scheduler's thread pool.
+///     Tests related to the Scheduler's job pool.
 ///     We ensure here that we do not run (concurrently) more jobs than we should.
 ///     When the pool is full of jobs, incoming jobs will wait as Enqueued jobs.
 /// </summary>
-public class ThreadPoolTests : IntegrationTest
+public class JobPoolTests : IntegrationTest
 {
-    public ThreadPoolTests(ITestOutputHelper output) : base(output)
+    public JobPoolTests(ITestOutputHelper output) : base(output)
     {
     }
 
@@ -32,7 +32,7 @@ public class ThreadPoolTests : IntegrationTest
     [Fact]
     public async Task FullPoolTest()
     {
-        ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
+        ConfigurationBuilder = ConfigurationBuilder.WithMaxConcurrentJobs(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
         var firstJob = new BusyJob(2000);

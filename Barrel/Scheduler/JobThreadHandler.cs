@@ -22,7 +22,7 @@ internal class JobThreadHandler : IDisposable
     {
         _configuration = configuration;
 
-        _semaphore = new SemaphoreSlim(_configuration.MaxThreads);
+        _semaphore = new SemaphoreSlim(_configuration.MaxConcurrentJobs);
         _jobQueue = new ConcurrentQueue<BaseJob>();
         _scheduledJobs = new SortedList<DateTime, BaseJob>();
         _runningJobs = new ConcurrentDictionary<int, Task>();
@@ -86,7 +86,7 @@ internal class JobThreadHandler : IDisposable
     }
 
     //  Processes jobs that have no delay anymore
-    //  Complies with the thread pool size limitations
+    //  Complies with the max concurrent jobs limitations
     private async Task ProcessQueue()
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)

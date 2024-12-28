@@ -6,7 +6,7 @@ public class ScheduleOptions
 
     /// <summary>
     ///     Specifies a delay from which the job is executed. This delay takes act since the job gets scheduled.
-    ///     <remarks>Under certain circumstances (thread pool congestion, low priority...), the actual delay might increase</remarks>
+    ///     <remarks>Under certain circumstances (jobs pool congestion, low priority...), the actual delay might increase</remarks>
     /// </summary>
     public TimeSpan Delay { get; private set; }
 

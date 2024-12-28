@@ -13,7 +13,7 @@ public enum JobState
     Scheduled,
 
     /// <summary>
-    ///     State of a job that is waiting to be executed, due to a thread pool congestion.
+    ///     State of a job that is waiting to be executed, due to a job pool congestion.
     /// </summary>
     Enqueued,
 

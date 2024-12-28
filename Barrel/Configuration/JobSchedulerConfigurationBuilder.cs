@@ -2,19 +2,19 @@
 
 public class JobSchedulerConfigurationBuilder
 {
-    /// <inheritdoc cref="WithMaxThreads"/>
-    public int MaxThreads { get; private set; } = 5;
-    /// <inheritdoc cref="WithQueuePollingRate"/>
+    /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs"/>
+    public int MaxConcurrentJobs { get; private set; } = 5;
+    /// <inheritdoc cref="JobSchedulerConfiguration.QueuePollingRate"/>
     public int QueuePollingRate { get; private set; } = 100;
-    /// <inheritdoc cref="WithSchedulePollingRate"/>
+    /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate"/>
     public int SchedulePollingRate { get; private set; } = 100;
 
-    /// <inheritdoc cref="JobSchedulerConfiguration.MaxThreads" />
-    public JobSchedulerConfigurationBuilder WithMaxThreads(int maxThreads)
+    /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
+    public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
     {
-        if (maxThreads < 1) throw new ArgumentException("MaxThread property must be greater than zero");
+        if (maxConcurrentJobs < 1) throw new ArgumentException($"{nameof(MaxConcurrentJobs)} property must be greater than zero");
 
-        MaxThreads = maxThreads;
+        MaxConcurrentJobs = maxConcurrentJobs;
 
         return this;
     }
@@ -22,7 +22,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.QueuePollingRate" />
     public JobSchedulerConfigurationBuilder WithQueuePollingRate(int milliseconds)
     {
-        if (milliseconds < 0) throw new ArgumentException("QueuePollingRate property must be positive");
+        if (milliseconds < 0) throw new ArgumentException($"{nameof(QueuePollingRate)} property must be positive");
 
         QueuePollingRate = milliseconds;
 
@@ -32,7 +32,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate" />
     public JobSchedulerConfigurationBuilder WithSchedulePollingRate(int milliseconds)
     {
-        if (milliseconds < 0) throw new ArgumentException("SchedulePollingRate property must be positive");
+        if (milliseconds < 0) throw new ArgumentException($"{nameof(SchedulePollingRate)} property must be positive");
 
         SchedulePollingRate = milliseconds;
 
@@ -43,7 +43,7 @@ public class JobSchedulerConfigurationBuilder
     {
         return new JobSchedulerConfiguration
         {
-            MaxThreads = MaxThreads,
+            MaxConcurrentJobs = MaxConcurrentJobs,
             QueuePollingRate = QueuePollingRate
         };
     }

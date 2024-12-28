@@ -36,7 +36,7 @@ public class JobStateTest : IntegrationTest
     [Fact]
     public async Task EnqueuedStatusTest()
     {
-        ConfigurationBuilder = ConfigurationBuilder.WithMaxThreads(1);
+        ConfigurationBuilder = ConfigurationBuilder.WithMaxConcurrentJobs(1);
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
         var busyJob = new BusyJob(2000);

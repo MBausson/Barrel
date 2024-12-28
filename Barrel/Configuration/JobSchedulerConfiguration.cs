@@ -3,9 +3,9 @@
 public struct JobSchedulerConfiguration
 {
     /// <summary>
-    ///     Represents the maximum amount of threads allocated to the execution of jobs
+    ///     Represents the maximum amount of jobs that can run concurrently for a given Scheduler
     /// </summary>
-    public int MaxThreads { get; init; }
+    public int MaxConcurrentJobs { get; init; }
 
     /// <summary>
     ///     Represents the amount of delay after no enqueued jobs have been found to be executed.
