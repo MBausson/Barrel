@@ -11,6 +11,7 @@ internal class JobThreadHandler : IDisposable
     //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentQueue<BaseJob> _jobQueue;
     private readonly SortedList<DateTime, BaseJob> _scheduledJobs;
+    private readonly ConcurrentDictionary<int, Task> _runningJobs;
     private readonly CancellationTokenSource _cancellationTokenSource;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
@@ -20,6 +21,7 @@ internal class JobThreadHandler : IDisposable
         _semaphore = new SemaphoreSlim(_configuration.MaxThreads);
         _jobQueue = new();
         _scheduledJobs = new();
+        _runningJobs = new();
         _cancellationTokenSource = new();
 
         _ = Task.Run(ProcessQueue);
@@ -33,6 +35,17 @@ internal class JobThreadHandler : IDisposable
         lock (_scheduledJobs)
         {
             _scheduledJobs.Add(DateTime.Now + delay, job);
+        }
+    }
+
+    /// <summary>
+    /// Blocking method that waits for all scheduled, enqueued and running jobs to end.
+    /// </summary>
+    public async Task WaitAllJobs()
+    {
+        while (!_runningJobs.IsEmpty || !_jobQueue.IsEmpty || _scheduledJobs.Count != 0)
+        {
+            await Task.Delay(50);
         }
     }
 
@@ -78,10 +91,9 @@ internal class JobThreadHandler : IDisposable
             }
 
             await _semaphore.WaitAsync();
-
             job.JobState = JobState.Running;
 
-            _ = Task.Run(async () =>
+            var jobTask = Task.Run(async () =>
             {
                 try
                 {
@@ -99,6 +111,13 @@ internal class JobThreadHandler : IDisposable
                 {
                     _semaphore.Release();
                 }
+            });
+
+            _runningJobs[jobTask.Id] = jobTask;
+
+            jobTask.ContinueWith(_ =>
+            {
+                _runningJobs.Remove(jobTask.Id, out var _);
             });
         }
     }

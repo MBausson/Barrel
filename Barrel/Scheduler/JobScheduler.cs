@@ -44,7 +44,14 @@ public class JobScheduler : IDisposable
         _threadHandler.ScheduleJob(job, options.Delay);
     }
 
-    //  TODO: Add a .WaitAll method to wait for all jobs to finish
+    /// <summary>
+    /// Blocking method that waits for all scheduled, enqueued and running jobs to end.
+    /// <remarks>This method does not restrict the schedule of new jobs after it was called</remarks>
+    /// </summary>
+    public async Task WaitAllJobs()
+    {
+        await _threadHandler.WaitAllJobs();
+    }
 
     public void Dispose()
     {
