@@ -5,14 +5,18 @@ namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
-    private readonly CancellationTokenSource _cancellationTokenSource;
+    /// <summary>
+    /// Invoked when any unexpected exception occurs in a running job.
+    /// <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
+    /// </summary>
+    public event EventHandler<JobFailureEventArgs> JobFailure;
 
+    private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
 
     //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentQueue<BaseJob> _jobQueue;
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
-
     private readonly SortedList<DateTime, BaseJob> _scheduledJobs;
 
     //  The semaphore ensures that we aren't using more threads than we should
@@ -108,11 +112,15 @@ internal class JobThreadHandler : IDisposable
                     await job.PerformAsync();
                     job.JobState = JobState.Success;
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
-                    //  TODO: Rethrow the error to the main thread.
                     job.JobState = JobState.Failed;
-                    throw;
+
+                    JobFailure.Invoke(job, new()
+                    {
+                        Job = job,
+                        Exception = e
+                    });
                 }
                 finally
                 {
