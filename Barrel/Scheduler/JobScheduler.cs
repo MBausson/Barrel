@@ -12,8 +12,6 @@ public class JobScheduler : IDisposable
     {
         _configuration = configurationBuilder.Build();
         _threadHandler = new JobThreadHandler(_configuration);
-
-        _threadHandler.JobFailure += OnJobFailure;
     }
 
     public void Dispose()
@@ -68,10 +66,5 @@ public class JobScheduler : IDisposable
     public async Task WaitAllJobs()
     {
         await _threadHandler.WaitAllJobs();
-    }
-
-    private void OnJobFailure(object _, JobFailureEventArgs eventArgs)
-    {
-        _configuration.Logger?.LogError(eventArgs.Exception, $"Job {eventArgs.Job.JobId} failure.");
     }
 }

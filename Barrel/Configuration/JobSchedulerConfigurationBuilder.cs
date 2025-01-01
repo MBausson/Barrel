@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Options;
 
 namespace Barrel.Configuration;
 
@@ -16,7 +18,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.Logger"/>
     /// <remarks>By default, logs to stdout.</remarks>
     /// </summary>
-    public ILogger? Logger { get; private set; } = DefaultLogger();
+    public ILogger? Logger { get; private set; } = DefaultLoggerFactory(LogLevel.Information).CreateLogger("Barrel");
 
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
@@ -60,6 +62,16 @@ public class JobSchedulerConfigurationBuilder
     }
 
     /// <summary>
+    /// Specifies a minimum level logging for the default logger
+    /// </summary>
+    public JobSchedulerConfigurationBuilder WithDefaultLogger(LogLevel minimumLevel)
+    {
+        Logger = DefaultLoggerFactory(minimumLevel).CreateLogger("Barrel");
+
+        return this;
+    }
+
+    /// <summary>
     /// Specifies no logging
     /// </summary>
     public JobSchedulerConfigurationBuilder WithNoLogger()
@@ -79,10 +91,8 @@ public class JobSchedulerConfigurationBuilder
         };
     }
 
-    private static ILogger DefaultLogger()
+    private static ILoggerFactory DefaultLoggerFactory(LogLevel minimumLevel)
     {
-        using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
-
-        return factory.CreateLogger("Barrel");
+        return LoggerFactory.Create(builder => builder.AddConsole().SetMinimumLevel(minimumLevel));
     }
 }

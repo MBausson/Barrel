@@ -49,14 +49,15 @@ internal class JobThreadHandler : IDisposable
 
     public void ScheduleJob(BaseJob job, TimeSpan delay)
     {
+        DateTime enqueueOn = DateTime.Now + delay;
         job.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
         {
-            _scheduledJobs.Add(DateTime.Now + delay, job);
+            _scheduledJobs.Add(enqueueOn, job);
         }
 
-        _configuration.Logger?.LogInformation($"Scheduled job {job.JobId}");
+        _configuration.Logger?.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
     }
 
     /// <summary>
@@ -113,19 +114,24 @@ internal class JobThreadHandler : IDisposable
             await _semaphore.WaitAsync();
             job.JobState = JobState.Running;
 
-            _configuration.Logger?.LogDebug($"Launching job {job.JobId} ...");
-
             var jobTask = Task.Run(async () =>
             {
                 try
                 {
+                    _configuration.Logger?.LogDebug($"Launching job {job.JobId} ...");
+
                     await job.BeforePerformAsync();
                     await job.PerformAsync();
+
                     job.JobState = JobState.Success;
+
+                    _configuration.Logger?.LogDebug($"Job {job.JobId} done !");
                 }
                 catch (Exception e)
                 {
                     job.JobState = JobState.Failed;
+
+                    _configuration.Logger?.LogError(e, $"Job {job.JobId} failure.");
 
                     JobFailure.Invoke(job, new()
                     {
