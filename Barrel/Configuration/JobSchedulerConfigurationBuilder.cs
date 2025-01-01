@@ -1,7 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Logging.Console;
-using Microsoft.Extensions.Options;
 
 namespace Barrel.Configuration;
 
@@ -18,7 +16,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.Logger"/>
     /// <remarks>By default, logs to stdout.</remarks>
     /// </summary>
-    public ILogger? Logger { get; private set; } = DefaultLoggerFactory(LogLevel.Information).CreateLogger("Barrel");
+    public ILogger Logger { get; private set; } = DefaultLoggerFactory(LogLevel.Information).CreateLogger("Barrel");
 
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
@@ -76,7 +74,7 @@ public class JobSchedulerConfigurationBuilder
     /// </summary>
     public JobSchedulerConfigurationBuilder WithNoLogger()
     {
-        Logger = null;
+        Logger = NullLogger.Instance;
 
         return this;
     }

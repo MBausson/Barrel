@@ -36,12 +36,12 @@ internal class JobThreadHandler : IDisposable
         _ = Task.Run(ProcessQueue);
         _ = Task.Run(ProcessSchedules);
 
-        _configuration.Logger?.LogTrace("JobThreadHandler initialized and worker tasks launched");
+        _configuration.Logger.LogTrace("JobThreadHandler initialized and worker tasks launched");
     }
 
     public void Dispose()
     {
-        _configuration.Logger?.LogTrace("JobThreadHandler disposed");
+        _configuration.Logger.LogTrace("JobThreadHandler disposed");
 
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
@@ -57,7 +57,7 @@ internal class JobThreadHandler : IDisposable
             _scheduledJobs.Add(enqueueOn, job);
         }
 
-        _configuration.Logger?.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
+        _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
     }
 
     /// <summary>
@@ -94,7 +94,7 @@ internal class JobThreadHandler : IDisposable
                 _jobQueue.Enqueue(job);
                 job.JobState = JobState.Enqueued;
 
-                _configuration.Logger?.LogDebug($"Enqueued job {job.JobId}");
+                _configuration.Logger.LogDebug($"Enqueued job {job.JobId}");
             }
         }
     }
@@ -118,20 +118,20 @@ internal class JobThreadHandler : IDisposable
             {
                 try
                 {
-                    _configuration.Logger?.LogDebug($"Launching job {job.JobId} ...");
+                    _configuration.Logger.LogDebug($"Launching job {job.JobId} ...");
 
                     await job.BeforePerformAsync();
                     await job.PerformAsync();
 
                     job.JobState = JobState.Success;
 
-                    _configuration.Logger?.LogDebug($"Job {job.JobId} done !");
+                    _configuration.Logger.LogDebug($"Job {job.JobId} done !");
                 }
                 catch (Exception e)
                 {
                     job.JobState = JobState.Failed;
 
-                    _configuration.Logger?.LogError(e, $"Job {job.JobId} failure.");
+                    _configuration.Logger.LogError(e, $"Job {job.JobId} failure.");
 
                     JobFailure.Invoke(job, new()
                     {

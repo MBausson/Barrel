@@ -27,5 +27,5 @@ public struct JobSchedulerConfiguration
     /// Logger used by the scheduler instance.
     /// <seealso cref="ILogger"/>
     /// </summary>
-    public ILogger? Logger { get; init; }
+    public ILogger Logger { get; init; }
 }
