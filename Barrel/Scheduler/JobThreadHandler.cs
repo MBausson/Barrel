@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Barrel.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
 
@@ -34,10 +35,14 @@ internal class JobThreadHandler : IDisposable
 
         _ = Task.Run(ProcessQueue);
         _ = Task.Run(ProcessSchedules);
+
+        _configuration.Logger?.LogTrace("JobThreadHandler initialized and worker tasks launched");
     }
 
     public void Dispose()
     {
+        _configuration.Logger?.LogTrace("JobThreadHandler disposed");
+
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
     }
@@ -50,6 +55,8 @@ internal class JobThreadHandler : IDisposable
         {
             _scheduledJobs.Add(DateTime.Now + delay, job);
         }
+
+        _configuration.Logger?.LogInformation($"Scheduled job {job.JobId}");
     }
 
     /// <summary>
@@ -85,6 +92,8 @@ internal class JobThreadHandler : IDisposable
                 _scheduledJobs.Remove(date);
                 _jobQueue.Enqueue(job);
                 job.JobState = JobState.Enqueued;
+
+                _configuration.Logger?.LogDebug($"Enqueued job {job.JobId}");
             }
         }
     }
@@ -103,6 +112,8 @@ internal class JobThreadHandler : IDisposable
 
             await _semaphore.WaitAsync();
             job.JobState = JobState.Running;
+
+            _configuration.Logger?.LogDebug($"Launching job {job.JobId} ...");
 
             var jobTask = Task.Run(async () =>
             {

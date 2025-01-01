@@ -1,4 +1,5 @@
 ﻿using Barrel.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
 
@@ -71,8 +72,6 @@ public class JobScheduler : IDisposable
 
     private void OnJobFailure(object _, JobFailureEventArgs eventArgs)
     {
-        //  TODO: Use loggers
-        Console.WriteLine($"[Barrel] - Job '{eventArgs.Job.JobId}' failure.");
-        Console.WriteLine($"{eventArgs.Exception}");
+        _configuration.Logger?.LogError(eventArgs.Exception, $"Job {eventArgs.Job.JobId} failure.");
     }
 }

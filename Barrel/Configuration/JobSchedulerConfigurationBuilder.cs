@@ -1,4 +1,7 @@
-﻿namespace Barrel.Configuration;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
+
+namespace Barrel.Configuration;
 
 public class JobSchedulerConfigurationBuilder
 {
@@ -8,6 +11,12 @@ public class JobSchedulerConfigurationBuilder
     public int QueuePollingRate { get; private set; } = 100;
     /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate"/>
     public int SchedulePollingRate { get; private set; } = 100;
+
+    /// <summary>
+    /// <inheritdoc cref="JobSchedulerConfiguration.Logger"/>
+    /// <remarks>By default, logs to stdout.</remarks>
+    /// </summary>
+    public ILogger? Logger { get; private set; } = DefaultLogger();
 
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
@@ -39,12 +48,41 @@ public class JobSchedulerConfigurationBuilder
         return this;
     }
 
+    /// <inheritdoc cref="JobSchedulerConfiguration.Logger"/>
+    /// <param name="builder">The builder action used by ILoggerFactory</param>
+    public JobSchedulerConfigurationBuilder WithLogger(Action<ILoggingBuilder> builder)
+    {
+        using ILoggerFactory factory = LoggerFactory.Create(builder);
+
+        Logger = factory.CreateLogger("Barrel");
+
+        return this;
+    }
+
+    /// <summary>
+    /// Specifies no logging
+    /// </summary>
+    public JobSchedulerConfigurationBuilder WithNoLogger()
+    {
+        Logger = null;
+
+        return this;
+    }
+
     public JobSchedulerConfiguration Build()
     {
         return new JobSchedulerConfiguration
         {
             MaxConcurrentJobs = MaxConcurrentJobs,
-            QueuePollingRate = QueuePollingRate
+            QueuePollingRate = QueuePollingRate,
+            Logger = Logger
         };
+    }
+
+    private static ILogger DefaultLogger()
+    {
+        using ILoggerFactory factory = LoggerFactory.Create(builder => builder.AddConsole());
+
+        return factory.CreateLogger("Barrel");
     }
 }
