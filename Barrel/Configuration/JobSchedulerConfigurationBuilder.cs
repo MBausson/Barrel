@@ -21,7 +21,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
     {
-        if (maxConcurrentJobs < 1) throw new ArgumentException($"{nameof(MaxConcurrentJobs)} property must be greater than zero");
+        if (maxConcurrentJobs < 1) throw new ArgumentOutOfRangeException($"{nameof(MaxConcurrentJobs)} property must be greater than zero");
 
         MaxConcurrentJobs = maxConcurrentJobs;
 
@@ -31,7 +31,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.QueuePollingRate" />
     public JobSchedulerConfigurationBuilder WithQueuePollingRate(int milliseconds)
     {
-        if (milliseconds < 0) throw new ArgumentException($"{nameof(QueuePollingRate)} property must be positive");
+        if (milliseconds < 0) throw new ArgumentOutOfRangeException($"{nameof(QueuePollingRate)} property must be positive");
 
         QueuePollingRate = milliseconds;
 
@@ -41,7 +41,7 @@ public class JobSchedulerConfigurationBuilder
     /// <inheritdoc cref="JobSchedulerConfiguration.SchedulePollingRate" />
     public JobSchedulerConfigurationBuilder WithSchedulePollingRate(int milliseconds)
     {
-        if (milliseconds < 0) throw new ArgumentException($"{nameof(SchedulePollingRate)} property must be positive");
+        if (milliseconds < 0) throw new ArgumentOutOfRangeException($"{nameof(SchedulePollingRate)} property must be positive");
 
         SchedulePollingRate = milliseconds;
 
@@ -85,6 +85,7 @@ public class JobSchedulerConfigurationBuilder
         {
             MaxConcurrentJobs = MaxConcurrentJobs,
             QueuePollingRate = QueuePollingRate,
+            SchedulePollingRate = SchedulePollingRate,
             Logger = Logger
         };
     }
