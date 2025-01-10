@@ -11,6 +11,7 @@ internal class JobThreadHandler : IDisposable
     /// <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
     /// </summary>
     public event EventHandler<JobFailureEventArgs> JobFailure;
+    public bool IsDisposed { get; private set; }
 
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
@@ -22,8 +23,6 @@ internal class JobThreadHandler : IDisposable
 
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
-
-    private bool _isDisposed;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -44,7 +43,7 @@ internal class JobThreadHandler : IDisposable
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
 
-        _isDisposed = true;
+        IsDisposed = true;
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
@@ -61,15 +60,9 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
     }
 
-    /// <summary>
-    ///     Blocking method that waits for all scheduled, enqueued and running jobs to end.
-    /// </summary>
-    public async Task WaitAllJobs()
+    public bool AreQueuesEmpty()
     {
-        while (!_isDisposed && !AreQueuesEmpty())
-        {
-            await Task.Delay(50);
-        }
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
     }
 
     //  Processes jobs that are still in delay to be enqueued
@@ -154,10 +147,5 @@ internal class JobThreadHandler : IDisposable
             //  Removes the job from the running queue after it is completed
             jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
         }
-    }
-
-    private bool AreQueuesEmpty()
-    {
-        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
     }
 }

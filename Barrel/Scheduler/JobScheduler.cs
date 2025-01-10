@@ -69,6 +69,6 @@ public class JobScheduler : IDisposable
     /// </summary>
     public async Task WaitAllJobs()
     {
-        await _threadHandler.WaitAllJobs();
+        while (!_threadHandler.IsDisposed && !_threadHandler.AreQueuesEmpty()) await Task.Delay(50);
     }
 }
