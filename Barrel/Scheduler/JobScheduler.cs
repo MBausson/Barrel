@@ -1,4 +1,5 @@
 ﻿using Barrel.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
 
@@ -7,17 +8,23 @@ public class JobScheduler : IDisposable
     private readonly JobSchedulerConfiguration _configuration;
     private readonly JobThreadHandler _threadHandler;
 
+    public JobScheduler() : this(new JobSchedulerConfigurationBuilder())
+    {
+    }
+
     public JobScheduler(JobSchedulerConfigurationBuilder configurationBuilder)
     {
         _configuration = configurationBuilder.Build();
         _threadHandler = new JobThreadHandler(_configuration);
 
-        _threadHandler.JobFailure += OnJobFailure;
+        _configuration.Logger.LogDebug("JobScheduler initialized");
     }
 
     public void Dispose()
     {
         _threadHandler.Dispose();
+
+        _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
     /// <summary>
@@ -66,13 +73,6 @@ public class JobScheduler : IDisposable
     /// </summary>
     public async Task WaitAllJobs()
     {
-        await _threadHandler.WaitAllJobs();
-    }
-
-    private void OnJobFailure(object _, JobFailureEventArgs eventArgs)
-    {
-        //  TODO: Use loggers
-        Console.WriteLine($"[Barrel] - Job '{eventArgs.Job.JobId}' failure.");
-        Console.WriteLine($"{eventArgs.Exception}");
+        while (!_threadHandler.IsDisposed && !_threadHandler.AreQueuesEmpty()) await Task.Delay(50);
     }
 }

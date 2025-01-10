@@ -1,4 +1,6 @@
-﻿namespace Barrel.Configuration;
+﻿using Microsoft.Extensions.Logging;
+
+namespace Barrel.Configuration;
 
 public struct JobSchedulerConfiguration
 {
@@ -20,4 +22,10 @@ public struct JobSchedulerConfiguration
     ///     Setting this value too low will deteriorate CPU performance
     /// </summary>
     public int SchedulePollingRate { get; init; }
+
+    /// <summary>
+    ///     Logger used by the scheduler instance.
+    ///     <seealso cref="ILogger" />
+    /// </summary>
+    public ILogger Logger { get; init; }
 }

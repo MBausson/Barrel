@@ -1,16 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using Barrel.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
-    /// <summary>
-    /// Invoked when any unexpected exception occurs in a running job.
-    /// <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
-    /// </summary>
-    public event EventHandler<JobFailureEventArgs> JobFailure;
-
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
 
@@ -36,28 +31,39 @@ internal class JobThreadHandler : IDisposable
         _ = Task.Run(ProcessSchedules);
     }
 
+    public bool IsDisposed { get; private set; }
+
     public void Dispose()
     {
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
+
+        IsDisposed = true;
+        _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
+
+    /// <summary>
+    ///     Invoked when any unexpected exception occurs in a running job.
+    ///     <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
+    /// </summary>
+    public event EventHandler<JobFailureEventArgs> JobFailure;
 
     public void ScheduleJob(BaseJob job, TimeSpan delay)
     {
+        var enqueueOn = DateTime.Now + delay;
         job.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
         {
-            _scheduledJobs.Add(DateTime.Now + delay, job);
+            _scheduledJobs.Add(enqueueOn, job);
         }
+
+        _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
     }
 
-    /// <summary>
-    ///     Blocking method that waits for all scheduled, enqueued and running jobs to end.
-    /// </summary>
-    public async Task WaitAllJobs()
+    public bool AreQueuesEmpty()
     {
-        while (!_runningJobs.IsEmpty || !_jobQueue.IsEmpty || _scheduledJobs.Count != 0) await Task.Delay(50);
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
     }
 
     //  Processes jobs that are still in delay to be enqueued
@@ -85,6 +91,8 @@ internal class JobThreadHandler : IDisposable
                 _scheduledJobs.Remove(date);
                 _jobQueue.Enqueue(job);
                 job.JobState = JobState.Enqueued;
+
+                _configuration.Logger.LogDebug($"Enqueued job {job.JobId}");
             }
         }
     }
@@ -108,15 +116,22 @@ internal class JobThreadHandler : IDisposable
             {
                 try
                 {
+                    _configuration.Logger.LogDebug($"Launching job {job.JobId} ...");
+
                     await job.BeforePerformAsync();
                     await job.PerformAsync();
+
                     job.JobState = JobState.Success;
+
+                    _configuration.Logger.LogDebug($"Job {job.JobId} done !");
                 }
                 catch (Exception e)
                 {
                     job.JobState = JobState.Failed;
 
-                    JobFailure.Invoke(job, new()
+                    _configuration.Logger.LogError(e, $"Job {job.JobId} failure.");
+
+                    JobFailure.Invoke(job, new JobFailureEventArgs
                     {
                         Job = job,
                         Exception = e
@@ -130,6 +145,7 @@ internal class JobThreadHandler : IDisposable
 
             _runningJobs[jobTask.Id] = jobTask;
 
+            //  Removes the job from the running queue after it is completed
             jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
         }
     }
