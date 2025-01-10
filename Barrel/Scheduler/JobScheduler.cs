@@ -8,6 +8,10 @@ public class JobScheduler : IDisposable
     private readonly JobSchedulerConfiguration _configuration;
     private readonly JobThreadHandler _threadHandler;
 
+    public JobScheduler() : this(new JobSchedulerConfigurationBuilder())
+    {
+    }
+
     public JobScheduler(JobSchedulerConfigurationBuilder configurationBuilder)
     {
         _configuration = configurationBuilder.Build();
