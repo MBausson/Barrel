@@ -12,23 +12,20 @@ public class JobSchedulerConfigurationTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            _builder.WithMaxConcurrentJobs(Random.Shared.Next(Int32.MinValue, 0));
+            _builder.WithMaxConcurrentJobs(Random.Shared.Next(int.MinValue, 0));
         });
     }
 
     [Fact]
     public void WithMaxConcurrentJobs_ZeroInputTest()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            _builder.WithMaxConcurrentJobs(0);
-        });
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _builder.WithMaxConcurrentJobs(0); });
     }
 
     [Fact]
     public void WithMaxConcurrentJobs_SetsMaxConcurrentJobsTest()
     {
-        int value = Random.Shared.Next(1, Int32.MaxValue);
+        var value = Random.Shared.Next(1, int.MaxValue);
 
         _builder.WithMaxConcurrentJobs(value);
 
@@ -40,14 +37,14 @@ public class JobSchedulerConfigurationTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            _builder.WithQueuePollingRate(Random.Shared.Next(Int32.MinValue, 0));
+            _builder.WithQueuePollingRate(Random.Shared.Next(int.MinValue, 0));
         });
     }
 
     [Fact]
     public void WithQueuePollingRate_SetsQueuePollingRateTest()
     {
-        int value = Random.Shared.Next(0, Int32.MaxValue);
+        var value = Random.Shared.Next(0, int.MaxValue);
 
         _builder.WithQueuePollingRate(value);
 
@@ -59,14 +56,14 @@ public class JobSchedulerConfigurationTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            _builder.WithSchedulePollingRate(Random.Shared.Next(Int32.MinValue, 0));
+            _builder.WithSchedulePollingRate(Random.Shared.Next(int.MinValue, 0));
         });
     }
 
     [Fact]
     public void WithSchedulePollingRate_SetsQueuePollingRateTest()
     {
-        int value = Random.Shared.Next(0, Int32.MaxValue);
+        var value = Random.Shared.Next(0, int.MaxValue);
 
         _builder.WithSchedulePollingRate(value);
 

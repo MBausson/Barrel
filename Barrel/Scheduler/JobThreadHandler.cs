@@ -6,13 +6,6 @@ namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
-    /// <summary>
-    /// Invoked when any unexpected exception occurs in a running job.
-    /// <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
-    /// </summary>
-    public event EventHandler<JobFailureEventArgs> JobFailure;
-    public bool IsDisposed { get; private set; }
-
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
 
@@ -38,6 +31,8 @@ internal class JobThreadHandler : IDisposable
         _ = Task.Run(ProcessSchedules);
     }
 
+    public bool IsDisposed { get; private set; }
+
     public void Dispose()
     {
         _semaphore.Dispose();
@@ -47,9 +42,15 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
+    /// <summary>
+    ///     Invoked when any unexpected exception occurs in a running job.
+    ///     <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
+    /// </summary>
+    public event EventHandler<JobFailureEventArgs> JobFailure;
+
     public void ScheduleJob(BaseJob job, TimeSpan delay)
     {
-        DateTime enqueueOn = DateTime.Now + delay;
+        var enqueueOn = DateTime.Now + delay;
         job.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
@@ -130,7 +131,7 @@ internal class JobThreadHandler : IDisposable
 
                     _configuration.Logger.LogError(e, $"Job {job.JobId} failure.");
 
-                    JobFailure.Invoke(job, new()
+                    JobFailure.Invoke(job, new JobFailureEventArgs
                     {
                         Job = job,
                         Exception = e
