@@ -23,6 +23,8 @@ internal class JobThreadHandler : IDisposable
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
 
+    private bool _isDisposed;
+
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
         _configuration = configuration;
@@ -35,16 +37,15 @@ internal class JobThreadHandler : IDisposable
 
         _ = Task.Run(ProcessQueue);
         _ = Task.Run(ProcessSchedules);
-
-        _configuration.Logger.LogTrace("JobThreadHandler initialized and worker tasks launched");
     }
 
     public void Dispose()
     {
-        _configuration.Logger.LogTrace("JobThreadHandler disposed");
-
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
+
+        _isDisposed = true;
+        _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
     public void ScheduleJob(BaseJob job, TimeSpan delay)
@@ -65,7 +66,10 @@ internal class JobThreadHandler : IDisposable
     /// </summary>
     public async Task WaitAllJobs()
     {
-        while (!_runningJobs.IsEmpty || !_jobQueue.IsEmpty || _scheduledJobs.Count != 0) await Task.Delay(50);
+        while (!_isDisposed && !AreQueuesEmpty())
+        {
+            await Task.Delay(50);
+        }
     }
 
     //  Processes jobs that are still in delay to be enqueued
@@ -147,7 +151,13 @@ internal class JobThreadHandler : IDisposable
 
             _runningJobs[jobTask.Id] = jobTask;
 
+            //  Removes the job from the running queue after it is completed
             jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
         }
+    }
+
+    private bool AreQueuesEmpty()
+    {
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
     }
 }

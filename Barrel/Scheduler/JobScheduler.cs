@@ -12,11 +12,15 @@ public class JobScheduler : IDisposable
     {
         _configuration = configurationBuilder.Build();
         _threadHandler = new JobThreadHandler(_configuration);
+
+        _configuration.Logger.LogDebug("JobScheduler initialized");
     }
 
     public void Dispose()
     {
         _threadHandler.Dispose();
+
+        _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
     /// <summary>
