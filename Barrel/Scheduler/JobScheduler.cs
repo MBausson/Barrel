@@ -41,9 +41,9 @@ public class JobScheduler : IDisposable
     ///     Schedules a job to run with no delay.
     /// </summary>
     /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
-    public void Schedule<T>(T job) where T : BaseJob
+    public ScheduledJobData Schedule<T>(T job) where T : BaseJob
     {
-        Schedule(job, ScheduleOptions.Default);
+        return Schedule(job, ScheduleOptions.Default);
     }
 
     /// <summary>

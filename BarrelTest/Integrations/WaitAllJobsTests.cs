@@ -27,14 +27,14 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var job = new BusyJob(1000);
         var beforeTime = DateTime.Now;
 
-        Scheduler.Schedule(job);
+        var jobData = Scheduler.Schedule(job);
         await Scheduler.WaitAllJobs();
 
         var afterTime = DateTime.Now;
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(1), TimeSpan.MaxValue);
-        Assert.Equal(JobState.Success, job.JobState);
+        Assert.Equal(JobState.Success, jobData.JobState);
     }
 
     [Fact]
@@ -49,8 +49,8 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var delayedJob = new BusyJob(1000);
         var beforeTime = DateTime.Now;
 
-        Scheduler.Schedule(noDelayJob);
-        Scheduler.Schedule(delayedJob, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
+        var noDelayJobData = Scheduler.Schedule(noDelayJob);
+        var delayedJobData = Scheduler.Schedule(delayedJob, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
 
         await Scheduler.WaitAllJobs();
 
@@ -58,7 +58,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(2), TimeSpan.MaxValue);
-        Assert.Equal(JobState.Success, noDelayJob.JobState);
-        Assert.Equal(JobState.Success, delayedJob.JobState);
+        Assert.Equal(JobState.Success, noDelayJobData.JobState);
+        Assert.Equal(JobState.Success, delayedJobData.JobState);
     }
 }
