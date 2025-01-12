@@ -10,9 +10,9 @@ internal class JobThreadHandler : IDisposable
     private readonly JobSchedulerConfiguration _configuration;
 
     //  Queues of job to run. These jobs should be run ASAP, according to their priority
-    private readonly ConcurrentQueue<BaseJob> _jobQueue;
+    private readonly ConcurrentQueue<ScheduledJobData> _jobQueue;
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
-    private readonly SortedList<DateTime, BaseJob> _scheduledJobs;
+    private readonly SortedList<DateTime, ScheduledJobData> _scheduledJobs;
 
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
@@ -22,8 +22,8 @@ internal class JobThreadHandler : IDisposable
         _configuration = configuration;
 
         _semaphore = new SemaphoreSlim(_configuration.MaxConcurrentJobs);
-        _jobQueue = new ConcurrentQueue<BaseJob>();
-        _scheduledJobs = new SortedList<DateTime, BaseJob>();
+        _jobQueue = new ConcurrentQueue<ScheduledJobData>();
+        _scheduledJobs = new SortedList<DateTime, ScheduledJobData>();
         _runningJobs = new ConcurrentDictionary<int, Task>();
         _cancellationTokenSource = new CancellationTokenSource();
 
@@ -48,17 +48,16 @@ internal class JobThreadHandler : IDisposable
     /// </summary>
     public event EventHandler<JobFailureEventArgs> JobFailure;
 
-    public void ScheduleJob(BaseJob job, TimeSpan delay)
+    public void ScheduleJob(ScheduledJobData job)
     {
-        var enqueueOn = DateTime.Now + delay;
         job.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
         {
-            _scheduledJobs.Add(enqueueOn, job);
+            _scheduledJobs.Add(job.EnqueuedOn, job);
         }
 
-        _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {enqueueOn}");
+        _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {job.EnqueuedOn}");
     }
 
     public bool AreQueuesEmpty()
@@ -71,7 +70,7 @@ internal class JobThreadHandler : IDisposable
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
-            KeyValuePair<DateTime, BaseJob>[] jobsToEnqueue;
+            KeyValuePair<DateTime, ScheduledJobData>[] jobsToEnqueue;
 
             lock (_scheduledJobs)
             {
@@ -112,14 +111,16 @@ internal class JobThreadHandler : IDisposable
             await _semaphore.WaitAsync();
             job.JobState = JobState.Running;
 
+            var jobInstance = job.HasInstance() ? job.InstanceJob! : job.InstantiateJob();
+
             var jobTask = Task.Run(async () =>
             {
                 try
                 {
                     _configuration.Logger.LogDebug($"Launching job {job.JobId} ...");
 
-                    await job.BeforePerformAsync();
-                    await job.PerformAsync();
+                    await jobInstance.BeforePerformAsync();
+                    await jobInstance.PerformAsync();
 
                     job.JobState = JobState.Success;
 
@@ -133,7 +134,7 @@ internal class JobThreadHandler : IDisposable
 
                     JobFailure.Invoke(job, new JobFailureEventArgs
                     {
-                        Job = job,
+                        Job = jobInstance,
                         Exception = e
                     });
                 }
