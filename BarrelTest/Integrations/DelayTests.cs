@@ -18,10 +18,10 @@ public class DelayTests : IntegrationTest
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new SuccessfulJob();
 
-        Scheduler.Schedule(job);
+        var jobData = Scheduler.Schedule(job);
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Success, job.JobState);
+        Assert.Equal(JobState.Success, jobData.JobState);
     }
 
     [Fact]

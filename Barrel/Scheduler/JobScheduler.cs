@@ -32,9 +32,28 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     /// <typeparam name="T">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
-    public void Schedule<T>() where T : BaseJob, new()
+    public ScheduledJobData Schedule<T>() where T : BaseJob, new()
     {
-        Schedule(new T(), ScheduleOptions.Default);
+        return Schedule(new T(), ScheduleOptions.Default);
+    }
+
+    /// <summary>
+    ///     Schedules a job to run with no delay.
+    /// </summary>
+    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
+    public ScheduledJobData Schedule<T>(T job) where T : BaseJob
+    {
+        return Schedule(job, ScheduleOptions.Default);
+    }
+
+    /// <summary>
+    ///     Schedules a job to run with a specified delay.
+    /// </summary>
+    /// <param name="job">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</param>
+    /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
+    public ScheduledJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
+    {
+        return ScheduleFromData(DataFromJobInstance(job, options));
     }
 
     /// <summary>
@@ -43,28 +62,16 @@ public class JobScheduler : IDisposable
     /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     /// <typeparam name="T">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
-    public void Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
+    public ScheduledJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        Schedule(new T(), options);
+        return ScheduleFromData(DataFromJobClass<T>(options));
     }
 
-    /// <summary>
-    ///     Schedules a job to run with no delay.
-    /// </summary>
-    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
-    public void Schedule<T>(T job) where T : BaseJob
+    private ScheduledJobData ScheduleFromData(ScheduledJobData jobData)
     {
-        Schedule(job, ScheduleOptions.Default);
-    }
+        _threadHandler.ScheduleJob(jobData);
 
-    /// <summary>
-    ///     Schedules a job to run with a specified delay.
-    /// </summary>
-    /// <param name="job">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</param>
-    /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
-    public void Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
-    {
-        _threadHandler.ScheduleJob(job, options.Delay);
+        return jobData;
     }
 
     /// <summary>
@@ -74,5 +81,25 @@ public class JobScheduler : IDisposable
     public async Task WaitAllJobs()
     {
         while (!_threadHandler.IsDisposed && !_threadHandler.AreQueuesEmpty()) await Task.Delay(50);
+    }
+
+    private ScheduledJobData DataFromJobClass<T>(ScheduleOptions options) where T : BaseJob, new()
+    {
+        var data = ScheduledJobData.FromJobClass<T>();
+
+        data.JobPriority = options.Priority;
+        data.EnqueuedOn = DateTime.Now + options.Delay;
+
+        return data;
+    }
+
+    private ScheduledJobData DataFromJobInstance(BaseJob jobInstance, ScheduleOptions options)
+    {
+        var data = ScheduledJobData.FromJobInstance(jobInstance);
+
+        data.JobPriority = options.Priority;
+        data.EnqueuedOn = DateTime.Now + options.Delay;
+
+        return data;
     }
 }
