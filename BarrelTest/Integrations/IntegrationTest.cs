@@ -34,6 +34,17 @@ public class IntegrationTest : IDisposable
         await Task.WhenAny(job.JobRunningSource.Task, Task.Delay(JobWaitTimeout));
     }
 
+    protected async Task WaitForNonInstancedJobToRun(ScheduledJobData jobData)
+    {
+        await Task.WhenAny(Task.Run(async () =>
+        {
+            while (jobData.JobState != JobState.Running)
+            {
+                await Task.Delay(5);
+            }
+        }), Task.Delay(JobWaitTimeout));
+    }
+
     protected async Task WaitForJobToEnd(TestJob job)
     {
         await Task.WhenAny(job.JobFinishedSource.Task, Task.Delay(JobWaitTimeout));

@@ -46,7 +46,9 @@ public class ScheduledJobData
     {
         if (JobClass is null) return InstanceJob!;
 
-        return (BaseJob)Activator.CreateInstance(JobClass)!;
+        InstanceJob = (BaseJob)Activator.CreateInstance(JobClass)!;
+
+        return InstanceJob;
     }
 
     public bool HasInstance() => InstanceJob is not null;
