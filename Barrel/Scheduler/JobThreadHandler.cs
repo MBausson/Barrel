@@ -27,8 +27,13 @@ internal class JobThreadHandler : IDisposable
         _runningJobs = new ConcurrentDictionary<int, Task>();
         _cancellationTokenSource = new CancellationTokenSource();
 
-        _ = Task.Run(ProcessQueue);
+        //  Background tasks to handle upcoming jobs
+
+        //  This one handles waiting (queuing) jobs
         _ = Task.Run(ProcessSchedules);
+
+        //  This one handles running jobs
+        _ = Task.Run(ProcessQueue);
     }
 
     public bool IsDisposed { get; private set; }
@@ -48,16 +53,16 @@ internal class JobThreadHandler : IDisposable
     /// </summary>
     public event EventHandler<JobFailureEventArgs> JobFailure;
 
-    public void ScheduleJob(ScheduledJobData job)
+    public void ScheduleJob(ScheduledJobData jobData)
     {
-        job.JobState = JobState.Scheduled;
+        jobData.JobState = JobState.Scheduled;
 
         lock (_scheduledJobs)
         {
-            _scheduledJobs.Add(job.EnqueuedOn, job);
+            _scheduledJobs.Add(jobData.EnqueuedOn, jobData);
         }
 
-        _configuration.Logger.LogInformation($"Scheduled job {job.JobId} to enqueue on {job.EnqueuedOn}");
+        _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
     }
 
     public bool AreQueuesEmpty()
@@ -85,13 +90,13 @@ internal class JobThreadHandler : IDisposable
                 continue;
             }
 
-            foreach (var (date, job) in jobsToEnqueue)
+            foreach (var (date, jobData) in jobsToEnqueue)
             {
                 _scheduledJobs.Remove(date);
-                _jobQueue.Enqueue(job);
-                job.JobState = JobState.Enqueued;
+                _jobQueue.Enqueue(jobData);
+                jobData.JobState = JobState.Enqueued;
 
-                _configuration.Logger.LogDebug($"Enqueued job {job.JobId}");
+                _configuration.Logger.LogDebug($"Enqueued job {jobData.JobId}");
             }
         }
     }
@@ -102,37 +107,38 @@ internal class JobThreadHandler : IDisposable
     {
         while (!_cancellationTokenSource.Token.IsCancellationRequested)
         {
-            if (!_jobQueue.TryDequeue(out var job))
+            if (!_jobQueue.TryDequeue(out var jobData))
             {
                 await Task.Delay(_configuration.QueuePollingRate);
                 continue;
             }
 
             await _semaphore.WaitAsync();
-            job.JobState = JobState.Running;
+            jobData.JobState = JobState.Running;
 
-            var jobInstance = job.HasInstance() ? job.InstanceJob! : job.InstantiateJob();
+            //  If the job hasn't been instantiated, do it now
+            var jobInstance = jobData.HasInstance() ? jobData.InstanceJob! : jobData.InstantiateJob();
 
             var jobTask = Task.Run(async () =>
             {
                 try
                 {
-                    _configuration.Logger.LogDebug($"Launching job {job.JobId} ...");
+                    _configuration.Logger.LogDebug($"Launching job {jobData.JobId} ...");
 
                     await jobInstance.BeforePerformAsync();
                     await jobInstance.PerformAsync();
 
-                    job.JobState = JobState.Success;
+                    jobData.JobState = JobState.Success;
 
-                    _configuration.Logger.LogDebug($"Job {job.JobId} done !");
+                    _configuration.Logger.LogDebug($"Job {jobData.JobId} done !");
                 }
                 catch (Exception e)
                 {
-                    job.JobState = JobState.Failed;
+                    jobData.JobState = JobState.Failed;
 
-                    _configuration.Logger.LogError(e, $"Job {job.JobId} failure.");
+                    _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
 
-                    JobFailure.Invoke(job, new JobFailureEventArgs
+                    JobFailure.Invoke(jobData, new JobFailureEventArgs
                     {
                         Job = jobInstance,
                         Exception = e
