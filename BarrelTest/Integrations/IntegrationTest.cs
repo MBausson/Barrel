@@ -38,10 +38,7 @@ public class IntegrationTest : IDisposable
     {
         await Task.WhenAny(Task.Run(async () =>
         {
-            while (jobData.JobState != JobState.Running)
-            {
-                await Task.Delay(5);
-            }
+            while (jobData.JobState != JobState.Running) await Task.Delay(5);
         }), Task.Delay(JobWaitTimeout));
     }
 

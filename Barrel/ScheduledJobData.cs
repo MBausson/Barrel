@@ -2,6 +2,12 @@
 
 public class ScheduledJobData
 {
+    private Type? _jobClass;
+
+    private ScheduledJobData()
+    {
+    }
+
     /// <summary>
     ///     A unique identifier bound to the creation of a job.
     ///     <remarks>This field will be overridable in the future</remarks>
@@ -22,34 +28,33 @@ public class ScheduledJobData
 
     public BaseJob? InstanceJob { get; private set; }
 
-    private Type? JobClass;
-
-    private ScheduledJobData(){}
-
     public static ScheduledJobData FromJobInstance(BaseJob jobInstance)
     {
-        return new()
+        return new ScheduledJobData
         {
-            InstanceJob = jobInstance,
+            InstanceJob = jobInstance
         };
     }
 
     public static ScheduledJobData FromJobClass<T>() where T : BaseJob, new()
     {
-        return new ()
+        return new ScheduledJobData
         {
-            JobClass = typeof(T)
+            _jobClass = typeof(T)
         };
     }
 
     public BaseJob InstantiateJob()
     {
-        if (JobClass is null) return InstanceJob!;
+        if (_jobClass is null || InstanceJob is not null) return InstanceJob!;
 
-        InstanceJob = (BaseJob)Activator.CreateInstance(JobClass)!;
+        InstanceJob = (BaseJob)Activator.CreateInstance(_jobClass)!;
 
         return InstanceJob;
     }
 
-    public bool HasInstance() => InstanceJob is not null;
+    public bool HasInstance()
+    {
+        return InstanceJob is not null;
+    }
 }

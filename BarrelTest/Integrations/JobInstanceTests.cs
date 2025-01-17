@@ -3,7 +3,7 @@
 namespace BarrelTest.Integrations;
 
 /// <summary>
-/// Ensures that "non instanced" jobs are instanced before running.
+///     Ensures that "non instanced" jobs are instanced before running.
 /// </summary>
 public class JobInstanceTests : IntegrationTest
 {
@@ -39,12 +39,12 @@ public class JobInstanceTests : IntegrationTest
 
     private class WitnessJob : TestJob
     {
-        public static bool HasInstance { get; private set; }
-
         public WitnessJob()
         {
             HasInstance = true;
         }
+
+        public static bool HasInstance { get; private set; }
 
         protected override async Task PerformAsync()
         {
