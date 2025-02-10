@@ -1,49 +1,49 @@
 # Barrel
 
-Barrel is a **simple**, **intuitive** and **easy-to-use** background jobs framework.  
+Barrel is a **simple**, **intuitive** and **easy-to-use** background jobs framework.
 This project is, for the moment, not designed to be used in production, as it lacks testing and core features.
-Furthermore, I created this project to train myself on concurrency & threading.  
+Additionally, I created this project to improve myself on concurrency and multi-tasking.
+
+As of now, there is no stable release of this project because I want to implement a few more features and add more tests.
+
+**Feedback and contributions are welcomed !**
 
 ## Concepts
 
-The idea behind **Barrel** is to provide a very simple and concise interface to schedule background jobs.  
-Thus, using this framework consists of working with (essentially) two components.
+The idea behind **Barrel** is to provide a very simple yet powerful interface to schedule background jobs.
 
-### BaseJob
+A job is represented by a sub-class of `BaseJob`. This class defines a `PerformAsync()` method in which the background work is done. The element responsible for scheduling the jobs is a `JobScheduler`.
 
-This is the base class used to define jobs. This class requires the implementation of a `Perform()` method, in which the actual work is done. 
-This class also gives access to some informations about the job, such as the ID, its state or even its priority level.  
+Example :
 
-### JobScheduler
+```csharp
+using var scheduler = new JobScheduler(new JobSchedulerConfigurationBuilder());
 
-This class does all the magic : you will use it to schedule future jobs.  
+//	Schedules a job to be ran in 1 second from now
+scheduler.Schedule<SimpleJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
+//	Schedules a job to be ran in 2 seconds from now
+scheduler.Schedule<SimpleJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(2)));
 
-## Usage
-
-First, let's create a scheduler.  
-By default, the scheduler uses at most 5 threads to run concurrently its enqueued jobs. This value can be changed via the `JobSchedulerConfiguration` instanced passed in its constructor.  
-
-```cs
-JobScheduler scheduler = new JobScheduler(new JobSchedulerConfiguration());
+//	Blocking call that waits for all jobs to be complete
+await scheduler.WaitAllJobs();
 ```
 
-If the scheduler's thread pool size reaches its limit, any new scheduled jobs will be enqueued and wait for the running jobs to free a thread. This behaviour is tuned according to jobs's priorities :
+### How it's done
 
-* **Low priority** - Jobs with this priority will run if no other jobs with a higher priority has been enqueued.  
-* **Medium priority** - Jobs with this priority will run before any Low enqueued jobs.  
-* **High priority** - Jobs with this priority will pause other running jobs if no thread is available.  
+Job schedulers use two separate threads to handle incoming and running jobs.
 
-The priority is defined as a `BaseJob` class property.  
-**Note:** This behaviour isn't implemented yet, and will likely be reworked.  
+- The first one processes a "Schedule" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a queue.
+- The second thread is responsible for handling the running jobs queue. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs. This property can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
+- Jobs are ran within a separate `System.Threading.Tasks.Task`
 
-Let's schedule some jobs :
+## Testing
 
-```cs
-scheduler.Schedule<SimpleJob>(TimeSpan.FromDays(2));
-scheduler.Schedule(new SimpleJob(), TimeSpan.FromSeconds(5));
-```
+I try to test as many case and feature possible, but it is not an easy task, since we are dealing with concurrency. This mean that on a slower machine, tests might not run as intended, and will probably fail. I'm trying to find workarounds to deal with this issue.
 
-In this code, we schedule two `SimpleJob` jobs to run with a defined delay.  
+In order to be sure that a test actually fails, please run it several times.
 
-Notice the syntax used : for the first schedule, we do **not** specify any `SimpleJob` instance, in contrast to the second schedule.  
-Since jobs can be scheduled to run in a long time (for example, in **6 months**), it does not make sense to keep an instance of a job in memory for such a long time. Instead, the class will be instantiated just before the job gets ran. This syntax requires a parameter-less constructor for the `BaseJob` used.
+## Future features
+
+- Jobs should have a priority, which impacts the behaviour of the JobScheduler's queue. For example, jobs with a `high` priority should be able to pause less prioritized jobs in order to run as soon as possible. Jobs with a `medium` priority will run before any `low` enqueued jobs.
+- A "persistence extension". This extension will make the JobScheduler use a database to keep track of scheduled jobs, as well as job executions, failure, etc.
+- A "dependency injection extension", allowing jobs to use the dependency injection pattern. Such jobs will define the dependencies they use on their constructor.
