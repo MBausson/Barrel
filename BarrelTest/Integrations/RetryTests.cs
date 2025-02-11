@@ -4,6 +4,7 @@ public class RetryTests
 {
     public class RetryJobsTests(ITestOutputHelper output) : IntegrationTest(output)
     {
+        //  Ensures that a successful job isn't retried
         [Fact]
         public async Task Successful_NoRetryTest()
         {
@@ -18,6 +19,7 @@ public class RetryTests
             Assert.Equal(JobState.Success, jobData.JobState);
         }
 
+        //  Ensures that a job that keeps failing is retried as much as permitted
         [Fact]
         public async Task Failure_MaxRetryTest()
         {
