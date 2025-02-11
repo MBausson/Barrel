@@ -47,12 +47,6 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
-    /// <summary>
-    ///     Invoked when any unexpected exception occurs in a running job.
-    ///     <remarks>Should also be exposed to public via JobScheduler (TODO)</remarks>
-    /// </summary>
-    public event EventHandler<JobFailureEventArgs> JobFailure;
-
     public void ScheduleJob(ScheduledJobData jobData)
     {
         jobData.JobState = JobState.Scheduled;
@@ -118,42 +112,48 @@ internal class JobThreadHandler : IDisposable
 
             //  If the job hasn't been instantiated, do it now
             var jobInstance = jobData.HasInstance() ? jobData.InstanceJob! : jobData.InstantiateJob();
-
-            var jobTask = Task.Run(async () =>
-            {
-                try
-                {
-                    _configuration.Logger.LogDebug($"Launching job {jobData.JobId} ...");
-
-                    await jobInstance.BeforePerformAsync();
-                    await jobInstance.PerformAsync();
-
-                    jobData.JobState = JobState.Success;
-
-                    _configuration.Logger.LogDebug($"Job {jobData.JobId} done !");
-                }
-                catch (Exception e)
-                {
-                    jobData.JobState = JobState.Failed;
-
-                    _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
-
-                    JobFailure.Invoke(jobData, new JobFailureEventArgs
-                    {
-                        Job = jobInstance,
-                        Exception = e
-                    });
-                }
-                finally
-                {
-                    _semaphore.Release();
-                }
-            });
+            var jobTask = RunJob(jobInstance, jobData);
 
             _runningJobs[jobTask.Id] = jobTask;
 
             //  Removes the job from the running queue after it is completed
             jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
+        }
+    }
+
+    private async Task RunJob(BaseJob jobInstance, ScheduledJobData jobData)
+    {
+        try
+        {
+            _configuration.Logger.LogDebug($"Launching job {jobData.JobId} ...");
+
+            await jobInstance.BeforePerformAsync();
+            await jobInstance.PerformAsync();
+
+            jobData.JobState = JobState.Success;
+
+            _configuration.Logger.LogDebug($"Job {jobData.JobId} done !");
+        }
+        catch (Exception e)
+        {
+            _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
+
+            jobData.JobState = JobState.Failed;
+
+            if (jobData.ShouldRetry)
+            {
+                jobData.Retry();
+
+                jobData.JobState = JobState.Enqueued;
+                _jobQueue.Enqueue(jobData);
+
+                _configuration.Logger.LogDebug(
+                    $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
+            }
+        }
+        finally
+        {
+            _semaphore.Release();
         }
     }
 }

@@ -16,6 +16,11 @@ public class ScheduleOptions
     public JobPriority Priority { get; private set; } = JobPriority.Default;
 
     /// <summary>
+    /// Specifies the maximum amount of times a job can be retried if it failed before.
+    /// </summary>
+    public int MaxRetries { get; private set; }
+
+    /// <summary>
     ///     <para> Creates a new ScheduleOptions with a delay. </para>
     ///     <inheritdoc cref="Delay" />
     /// </summary>
@@ -49,6 +54,15 @@ public class ScheduleOptions
     public ScheduleOptions WithPriority(JobPriority priority)
     {
         Priority = priority;
+
+        return this;
+    }
+
+    public ScheduleOptions WithMaxRetries(int maxRetries)
+    {
+        if (maxRetries < 0) throw new ArgumentOutOfRangeException($"{nameof(MaxRetries)} should be positive or zero.");
+
+        MaxRetries = maxRetries;
 
         return this;
     }
