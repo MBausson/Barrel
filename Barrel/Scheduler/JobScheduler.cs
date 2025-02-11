@@ -89,6 +89,7 @@ public class JobScheduler : IDisposable
 
         data.JobPriority = options.Priority;
         data.EnqueuedOn = DateTime.Now + options.Delay;
+        data.MaxRetryAttempts = options.MaxRetries;
 
         return data;
     }
@@ -99,6 +100,7 @@ public class JobScheduler : IDisposable
 
         data.JobPriority = options.Priority;
         data.EnqueuedOn = DateTime.Now + options.Delay;
+        data.MaxRetryAttempts = options.MaxRetries;
 
         return data;
     }

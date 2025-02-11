@@ -18,7 +18,7 @@ public class ScheduleOptions
     /// <summary>
     /// Specifies the maximum amount of times a job can be retried if it failed before.
     /// </summary>
-    public int MaxRetries { get; private set; } = 0;
+    public int MaxRetries { get; private set; }
 
     /// <summary>
     ///     <para> Creates a new ScheduleOptions with a delay. </para>

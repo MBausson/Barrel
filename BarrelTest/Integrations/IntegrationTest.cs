@@ -8,14 +8,14 @@ namespace BarrelTest.Integrations;
 ///     unpredictable behaviours, so they are disposed after each test.
 ///     <remarks>Please declare the scheduler used in the Scheduler attribute.</remarks>
 /// </summary>
-public class IntegrationTest : IDisposable
+public class IntegrationTest : XunitContextBase, IDisposable
 {
     protected readonly int JobWaitTimeout = 5000;
     protected readonly ITestOutputHelper Output;
     protected JobSchedulerConfigurationBuilder ConfigurationBuilder = new();
     protected JobScheduler? Scheduler;
 
-    public IntegrationTest(ITestOutputHelper output)
+    public IntegrationTest(ITestOutputHelper output) : base(output)
     {
         ConfigurationBuilder = ConfigurationBuilder
             .WithQueuePollingRate(0)

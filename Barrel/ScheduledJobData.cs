@@ -1,4 +1,6 @@
-﻿namespace Barrel;
+﻿using Barrel.Scheduler;
+
+namespace Barrel;
 
 public class ScheduledJobData
 {
@@ -28,6 +30,12 @@ public class ScheduledJobData
 
     public BaseJob? InstanceJob { get; private set; }
 
+    public int MaxRetryAttempts { get; internal set; }
+
+    public int RetryAttempts { get; private set; }
+
+    internal bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
+
     public static ScheduledJobData FromJobInstance(BaseJob jobInstance)
     {
         return new ScheduledJobData
@@ -56,5 +64,11 @@ public class ScheduledJobData
     public bool HasInstance()
     {
         return InstanceJob is not null;
+    }
+
+    internal void Retry()
+    {
+        RetryAttempts++;
+        InstanceJob = null;
     }
 }
