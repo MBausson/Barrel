@@ -8,11 +8,11 @@ internal class JobThreadHandler : IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
+    private readonly ScheduleQueue _scheduleQueue;
 
     //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentQueue<ScheduledJobData> _jobQueue;
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
-    private readonly SortedList<DateTime, ScheduledJobData> _scheduledJobs;
 
     //  The semaphore ensures that we aren't using more threads than we should
     private readonly SemaphoreSlim _semaphore;
@@ -20,17 +20,17 @@ internal class JobThreadHandler : IDisposable
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
         _configuration = configuration;
+        _cancellationTokenSource = new CancellationTokenSource();
+
+        _scheduleQueue = new(_configuration.SchedulePollingRate, _cancellationTokenSource);
 
         _semaphore = new SemaphoreSlim(_configuration.MaxConcurrentJobs);
         _jobQueue = new ConcurrentQueue<ScheduledJobData>();
-        _scheduledJobs = new SortedList<DateTime, ScheduledJobData>();
         _runningJobs = new ConcurrentDictionary<int, Task>();
-        _cancellationTokenSource = new CancellationTokenSource();
 
         //  Background tasks to handle upcoming jobs
-
-        //  This one handles waiting (queuing) jobs
-        _ = Task.Run(ProcessSchedules);
+        _scheduleQueue.OnJobReady += JobReady!;
+        _scheduleQueue.StartProcessSchedules();
 
         //  This one handles running jobs
         _ = Task.Run(ProcessQueue);
@@ -40,6 +40,8 @@ internal class JobThreadHandler : IDisposable
 
     public void Dispose()
     {
+        _scheduleQueue.OnJobReady -= JobReady!;
+
         _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
 
@@ -49,50 +51,22 @@ internal class JobThreadHandler : IDisposable
 
     public void ScheduleJob(ScheduledJobData jobData)
     {
-        jobData.JobState = JobState.Scheduled;
-
-        lock (_scheduledJobs)
-        {
-            _scheduledJobs.Add(jobData.EnqueuedOn, jobData);
-        }
+        _scheduleQueue.ScheduleJob(jobData);
 
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
     }
 
     public bool AreQueuesEmpty()
     {
-        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
     }
 
-    //  Processes jobs that are still in delay to be enqueued
-    private async Task ProcessSchedules()
+    private void JobReady(object sender, JobReadyEventArgs eventArgs)
     {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            KeyValuePair<DateTime, ScheduledJobData>[] jobsToEnqueue;
+        _jobQueue.Enqueue(eventArgs.JobData);
+        eventArgs.JobData.JobState = JobState.Enqueued;
 
-            lock (_scheduledJobs)
-            {
-                jobsToEnqueue = _scheduledJobs
-                    .Where(kv => kv.Key <= DateTime.Now)
-                    .ToArray();
-            }
-
-            if (jobsToEnqueue.Length == 0)
-            {
-                await Task.Delay(_configuration.SchedulePollingRate);
-                continue;
-            }
-
-            foreach (var (date, jobData) in jobsToEnqueue)
-            {
-                _scheduledJobs.Remove(date);
-                _jobQueue.Enqueue(jobData);
-                jobData.JobState = JobState.Enqueued;
-
-                _configuration.Logger.LogDebug($"Enqueued job {jobData.JobId}");
-            }
-        }
+        _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
     }
 
     //  Processes jobs that have no delay anymore
