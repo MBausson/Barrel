@@ -85,23 +85,26 @@ public class JobScheduler : IDisposable
 
     private ScheduledJobData DataFromJobClass<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        var data = ScheduledJobData.FromJobClass<T>();
-
-        data.JobPriority = options.Priority;
-        data.EnqueuedOn = DateTime.Now + options.Delay;
-        data.MaxRetryAttempts = options.MaxRetries;
-
-        return data;
+        return SetDataToJobData(
+            jobData: ScheduledJobData.FromJobClass<T>(),
+            options
+            );
     }
 
     private ScheduledJobData DataFromJobInstance(BaseJob jobInstance, ScheduleOptions options)
     {
-        var data = ScheduledJobData.FromJobInstance(jobInstance);
+        return SetDataToJobData(
+            jobData: ScheduledJobData.FromJobInstance(jobInstance),
+            options
+            );
+    }
 
-        data.JobPriority = options.Priority;
-        data.EnqueuedOn = DateTime.Now + options.Delay;
-        data.MaxRetryAttempts = options.MaxRetries;
+    private ScheduledJobData SetDataToJobData(ScheduledJobData jobData, ScheduleOptions options)
+    {
+        jobData.JobPriority = options.Priority;
+        jobData.EnqueuedOn = DateTime.Now + options.Delay;
+        jobData.MaxRetryAttempts = options.MaxRetries;
 
-        return data;
+        return jobData;
     }
 }

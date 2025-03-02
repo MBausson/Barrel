@@ -4,7 +4,7 @@ namespace Barrel.Scheduler;
 public class RecurrentScheduleOptions : ScheduleOptions
 {
     /// <summary>
-    /// Represents the amount of time between each execution of a recurrent job.  
+    /// Represents the amount of time between each execution of a recurrent job.
     /// <remarks>The delay must be greater or equal to 1 second</remarks>
     /// </summary>
     public TimeSpan Periodicity { get; private set; }
@@ -18,4 +18,6 @@ public class RecurrentScheduleOptions : ScheduleOptions
 
         return this;
     }
+
+    public override DateTime NextScheduleOn() => base.NextScheduleOn() + Periodicity;
 }

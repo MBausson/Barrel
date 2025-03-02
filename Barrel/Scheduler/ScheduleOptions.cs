@@ -68,4 +68,6 @@ public class ScheduleOptions
     }
 
     //  TODO: Make so we can schedule at a specific date
+
+    public virtual DateTime NextScheduleOn() => DateTime.Now + Delay;
 }
