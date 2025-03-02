@@ -28,6 +28,9 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
         jobData.JobState = JobState.Enqueued;
     }
 
+    //  Called when a job finished its work
+    public void JobFinished() => _semaphore.Release();
+
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
     private async Task ProcessJobs()
     {

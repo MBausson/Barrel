@@ -15,9 +15,6 @@ internal class JobThreadHandler : IDisposable
     //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
 
-    //  The semaphore ensures that we aren't using more threads than we should
-    private readonly SemaphoreSlim _semaphore;
-
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
         _configuration = configuration;
@@ -27,7 +24,6 @@ internal class JobThreadHandler : IDisposable
         _runningJobQueue = new(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
             _cancellationTokenSource);
 
-        _semaphore = new SemaphoreSlim(_configuration.MaxConcurrentJobs);
         _runningJobs = new ConcurrentDictionary<int, Task>();
 
         //  Background tasks to handle upcoming jobs
@@ -44,7 +40,6 @@ internal class JobThreadHandler : IDisposable
     {
         _scheduleQueue.OnJobReady -= JobReady!;
 
-        _semaphore.Dispose();
         _cancellationTokenSource.Dispose();
 
         IsDisposed = true;
@@ -112,7 +107,7 @@ internal class JobThreadHandler : IDisposable
         }
         finally
         {
-            _semaphore.Release();
+            _runningJobQueue.JobFinished();
         }
     }
 }
