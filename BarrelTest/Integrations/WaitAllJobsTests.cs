@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output)
 {

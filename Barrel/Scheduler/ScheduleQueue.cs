@@ -1,6 +1,4 @@
-﻿using System.Collections.Concurrent;
-
-namespace Barrel.Scheduler;
+﻿namespace Barrel.Scheduler;
 
 public class JobReadyEventArgs(ScheduledJobData jobData) : EventArgs
 {
@@ -9,10 +7,9 @@ public class JobReadyEventArgs(ScheduledJobData jobData) : EventArgs
 
 public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellationTokenSource)
 {
-    public event EventHandler<JobReadyEventArgs> OnJobReady = null!;
-    public bool IsEmpty => _queue.Count == 0;
-
     private readonly SortedList<DateTime, ScheduledJobData> _queue = new();
+    public bool IsEmpty => _queue.Count == 0;
+    public event EventHandler<JobReadyEventArgs> OnJobReady = null!;
 
     public void StartProcessingSchedules()
     {
@@ -55,7 +52,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
                     _queue.Remove(date);
                 }
 
-                OnJobReady?.Invoke(this, new(jobData));
+                OnJobReady?.Invoke(this, new JobReadyEventArgs(jobData));
             }
         }
     }

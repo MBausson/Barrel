@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 /// <summary>
 ///     Tests related to jobs' status.

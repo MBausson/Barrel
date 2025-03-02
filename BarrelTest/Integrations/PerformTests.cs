@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 //  Ensures that jobs' perform methods are executed
 public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)

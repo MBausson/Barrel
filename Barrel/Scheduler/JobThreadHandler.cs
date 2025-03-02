@@ -6,23 +6,21 @@ namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
-    public bool IsEmpty => _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
-
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
-
-    private readonly ScheduleQueue _scheduleQueue;
     private readonly JobQueue _runningJobQueue;
 
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
+
+    private readonly ScheduleQueue _scheduleQueue;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
         _configuration = configuration;
         _cancellationTokenSource = new CancellationTokenSource();
 
-        _scheduleQueue = new(_configuration.SchedulePollingRate, _cancellationTokenSource);
-        _runningJobQueue = new(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
+        _scheduleQueue = new ScheduleQueue(_configuration.SchedulePollingRate, _cancellationTokenSource);
+        _runningJobQueue = new JobQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
             _cancellationTokenSource);
 
         _runningJobs = new ConcurrentDictionary<int, Task>();
@@ -35,14 +33,9 @@ internal class JobThreadHandler : IDisposable
         _runningJobQueue.StartProcessingJobs();
     }
 
+    public bool IsEmpty => _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+
     public bool IsDisposed { get; private set; }
-
-    public void ScheduleJob(ScheduledJobData jobData)
-    {
-        _scheduleQueue.ScheduleJob(jobData);
-
-        _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
-    }
 
     public void Dispose()
     {
@@ -53,6 +46,13 @@ internal class JobThreadHandler : IDisposable
 
         IsDisposed = true;
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
+    }
+
+    public void ScheduleJob(ScheduledJobData jobData)
+    {
+        _scheduleQueue.ScheduleJob(jobData);
+
+        _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
     }
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)

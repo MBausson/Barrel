@@ -9,11 +9,10 @@ internal class JobFiredEventArgs(ScheduledJobData jobData) : EventArgs
 
 internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationTokenSource cancellationTokenSource)
 {
-    public event EventHandler<JobFiredEventArgs> OnJobFired = null!;
-    public bool IsEmpty => _queue.IsEmpty;
-
     private readonly ConcurrentQueue<ScheduledJobData> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(maxConcurrentJobs);
+    public bool IsEmpty => _queue.IsEmpty;
+    public event EventHandler<JobFiredEventArgs> OnJobFired = null!;
 
     public void StartProcessingJobs()
     {
@@ -27,7 +26,10 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     }
 
     //  Called when a job finished its work
-    public void JobFinished() => _semaphore.Release();
+    public void JobFinished()
+    {
+        _semaphore.Release();
+    }
 
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
     private async Task ProcessJobs()
@@ -47,7 +49,7 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             //  If the job hasn't been instantiated, do it now
             if (!jobData.HasInstance()) jobData.InstantiateJob();
 
-            OnJobFired?.Invoke(this, new(jobData));
+            OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
         }
     }
 }

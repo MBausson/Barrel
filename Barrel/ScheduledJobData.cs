@@ -1,6 +1,4 @@
-﻿using Barrel.Scheduler;
-
-namespace Barrel;
+﻿namespace Barrel;
 
 public class ScheduledJobData
 {

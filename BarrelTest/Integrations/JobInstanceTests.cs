@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 /// <summary>
 ///     Ensures that "non instanced" jobs are instanced before running.
