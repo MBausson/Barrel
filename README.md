@@ -32,9 +32,9 @@ await scheduler.WaitAllJobs();
 
 Job schedulers use two separate threads to handle incoming and running jobs.
 
-- The first one processes a "Schedule" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a queue.
+- The first one processes a "Schedule" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a second queue.
 - The second thread is responsible for handling the running jobs queue. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs. This property can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
-- Jobs are ran within a separate `System.Threading.Tasks.Task`
+- Jobs are ran within a dedicated `System.Threading.Tasks.Task` object
 
 ## Testing
 
