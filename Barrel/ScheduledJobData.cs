@@ -1,6 +1,4 @@
-﻿using Barrel.Scheduler;
-
-namespace Barrel;
+﻿namespace Barrel;
 
 public class ScheduledJobData
 {
@@ -52,6 +50,7 @@ public class ScheduledJobData
         };
     }
 
+    //  If not already done, instantiate the job's class, stores it and returns it
     public BaseJob InstantiateJob()
     {
         if (_jobClass is null || InstanceJob is not null) return InstanceJob!;

@@ -8,39 +8,40 @@ internal class JobThreadHandler : IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
+    private readonly JobQueue _runningJobQueue;
 
-    //  Queues of job to run. These jobs should be run ASAP, according to their priority
-    private readonly ConcurrentQueue<ScheduledJobData> _jobQueue;
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
-    private readonly SortedList<DateTime, ScheduledJobData> _scheduledJobs;
 
-    //  The semaphore ensures that we aren't using more threads than we should
-    private readonly SemaphoreSlim _semaphore;
+    private readonly ScheduleQueue _scheduleQueue;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
         _configuration = configuration;
-
-        _semaphore = new SemaphoreSlim(_configuration.MaxConcurrentJobs);
-        _jobQueue = new ConcurrentQueue<ScheduledJobData>();
-        _scheduledJobs = new SortedList<DateTime, ScheduledJobData>();
-        _runningJobs = new ConcurrentDictionary<int, Task>();
         _cancellationTokenSource = new CancellationTokenSource();
 
+        _scheduleQueue = new ScheduleQueue(_configuration.SchedulePollingRate, _cancellationTokenSource);
+        _runningJobQueue = new JobQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
+            _cancellationTokenSource);
+
+        _runningJobs = new ConcurrentDictionary<int, Task>();
+
+        _scheduleQueue.OnJobReady += JobReady;
+        _runningJobQueue.OnJobFired += JobFired;
+
         //  Background tasks to handle upcoming jobs
-
-        //  This one handles waiting (queuing) jobs
-        _ = Task.Run(ProcessSchedules);
-
-        //  This one handles running jobs
-        _ = Task.Run(ProcessQueue);
+        _scheduleQueue.StartProcessingSchedules();
+        _runningJobQueue.StartProcessingJobs();
     }
+
+    public bool IsEmpty => _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
 
     public bool IsDisposed { get; private set; }
 
     public void Dispose()
     {
-        _semaphore.Dispose();
+        _scheduleQueue.OnJobReady -= JobReady;
+        _runningJobQueue.OnJobFired -= JobFired;
+
         _cancellationTokenSource.Dispose();
 
         IsDisposed = true;
@@ -49,76 +50,26 @@ internal class JobThreadHandler : IDisposable
 
     public void ScheduleJob(ScheduledJobData jobData)
     {
-        jobData.JobState = JobState.Scheduled;
-
-        lock (_scheduledJobs)
-        {
-            _scheduledJobs.Add(jobData.EnqueuedOn, jobData);
-        }
+        _scheduleQueue.ScheduleJob(jobData);
 
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
     }
 
-    public bool AreQueuesEmpty()
+    private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
-        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduledJobs.Count == 0;
+        _runningJobQueue.EnqueueJob(eventArgs.JobData);
+
+        _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
     }
 
-    //  Processes jobs that are still in delay to be enqueued
-    private async Task ProcessSchedules()
+    private void JobFired(object? _, JobFiredEventArgs e)
     {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            KeyValuePair<DateTime, ScheduledJobData>[] jobsToEnqueue;
+        var jobTask = RunJob(e.JobData.InstanceJob!, e.JobData);
 
-            lock (_scheduledJobs)
-            {
-                jobsToEnqueue = _scheduledJobs
-                    .Where(kv => kv.Key <= DateTime.Now)
-                    .ToArray();
-            }
+        _runningJobs[jobTask.Id] = jobTask;
 
-            if (jobsToEnqueue.Length == 0)
-            {
-                await Task.Delay(_configuration.SchedulePollingRate);
-                continue;
-            }
-
-            foreach (var (date, jobData) in jobsToEnqueue)
-            {
-                _scheduledJobs.Remove(date);
-                _jobQueue.Enqueue(jobData);
-                jobData.JobState = JobState.Enqueued;
-
-                _configuration.Logger.LogDebug($"Enqueued job {jobData.JobId}");
-            }
-        }
-    }
-
-    //  Processes jobs that have no delay anymore
-    //  Complies with the max concurrent jobs limitations
-    private async Task ProcessQueue()
-    {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
-        {
-            if (!_jobQueue.TryDequeue(out var jobData))
-            {
-                await Task.Delay(_configuration.QueuePollingRate);
-                continue;
-            }
-
-            await _semaphore.WaitAsync();
-            jobData.JobState = JobState.Running;
-
-            //  If the job hasn't been instantiated, do it now
-            var jobInstance = jobData.HasInstance() ? jobData.InstanceJob! : jobData.InstantiateJob();
-            var jobTask = RunJob(jobInstance, jobData);
-
-            _runningJobs[jobTask.Id] = jobTask;
-
-            //  Removes the job from the running queue after it is completed
-            jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
-        }
+        //  Removes the job from the running queue after it is completed
+        jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
     }
 
     private async Task RunJob(BaseJob jobInstance, ScheduledJobData jobData)
@@ -136,24 +87,29 @@ internal class JobThreadHandler : IDisposable
         }
         catch (Exception e)
         {
-            _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
-
-            jobData.JobState = JobState.Failed;
-
-            if (jobData.ShouldRetry)
-            {
-                jobData.Retry();
-
-                jobData.JobState = JobState.Enqueued;
-                _jobQueue.Enqueue(jobData);
-
-                _configuration.Logger.LogDebug(
-                    $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
-            }
+            HandleFailingJob(jobData, e);
         }
         finally
         {
-            _semaphore.Release();
+            _runningJobQueue.JobFinished();
+        }
+    }
+
+    private void HandleFailingJob(ScheduledJobData jobData, Exception e)
+    {
+        _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
+
+        jobData.JobState = JobState.Failed;
+
+        if (jobData.ShouldRetry)
+        {
+            jobData.Retry();
+
+            jobData.JobState = JobState.Enqueued;
+            _runningJobQueue.EnqueueJob(jobData);
+
+            _configuration.Logger.LogDebug(
+                $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
         }
     }
 }

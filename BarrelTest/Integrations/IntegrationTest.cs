@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 /// <summary>
 ///     Any test class that intends to schedule Jobs should inherit from this class.

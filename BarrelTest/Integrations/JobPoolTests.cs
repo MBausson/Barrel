@@ -1,6 +1,4 @@
-﻿using Xunit.Abstractions;
-
-namespace BarrelTest.Integrations;
+﻿namespace BarrelTest.Integrations;
 
 /// <summary>
 ///     Tests related to the Scheduler's job pool.
@@ -48,7 +46,7 @@ public class JobPoolTests : IntegrationTest
         Assert.Equal(JobState.Running, firstJobData.JobState);
         Assert.Equal(JobState.Enqueued, secondJobData.JobState);
 
-        await WaitForJobToRun(secondJob);
+        await WaitForJobToEnd(firstJob);
 
         //  Now the first job is done and the second one has already started
         Assert.Equal(JobState.Success, firstJobData.JobState);

@@ -50,7 +50,7 @@ public class ScheduleOptionsTests
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            _options.WithMaxRetries(Random.Shared.Next(Int32.MinValue, 0));
+            _options.WithMaxRetries(Random.Shared.Next(int.MinValue, 0));
         });
     }
 
@@ -58,7 +58,7 @@ public class ScheduleOptionsTests
     [Fact]
     public void WithMaxRetries_SetsMaxRetriesTest()
     {
-        var value = Random.Shared.Next(0, Int32.MaxValue);
+        var value = Random.Shared.Next(0, int.MaxValue);
 
         _options.WithMaxRetries(value);
 

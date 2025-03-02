@@ -16,7 +16,7 @@ public class ScheduleOptions
     public JobPriority Priority { get; private set; } = JobPriority.Default;
 
     /// <summary>
-    /// Specifies the maximum amount of times a job can be retried if it failed before.
+    ///     Specifies the maximum amount of times a job can be retried if it failed before.
     /// </summary>
     public int MaxRetries { get; private set; }
 

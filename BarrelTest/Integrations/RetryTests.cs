@@ -25,7 +25,7 @@ public class RetryTests
         {
             Scheduler = new JobScheduler();
 
-            var job = new RetryableJob(shouldFail: true);
+            var job = new RetryableJob(true);
             var jobData = Scheduler.Schedule(job, new ScheduleOptions().WithMaxRetries(3));
 
             await WaitForJobToEnd(job);
