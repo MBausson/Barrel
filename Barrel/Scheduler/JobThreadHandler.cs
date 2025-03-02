@@ -6,13 +6,14 @@ namespace Barrel.Scheduler;
 
 internal class JobThreadHandler : IDisposable
 {
+    public bool IsEmpty => _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
 
     private readonly ScheduleQueue _scheduleQueue;
     private readonly JobQueue _runningJobQueue;
 
-    //  Queues of job to run. These jobs should be run ASAP, according to their priority
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
@@ -26,25 +27,15 @@ internal class JobThreadHandler : IDisposable
 
         _runningJobs = new ConcurrentDictionary<int, Task>();
 
-        //  Background tasks to handle upcoming jobs
-        _scheduleQueue.OnJobReady += JobReady!;
+        _scheduleQueue.OnJobReady += JobReady;
         _runningJobQueue.OnJobFired += JobFired;
 
-        _scheduleQueue.StartProcessSchedules();
-        _runningJobQueue.StartProcessJobs();
+        //  Background tasks to handle upcoming jobs
+        _scheduleQueue.StartProcessingSchedules();
+        _runningJobQueue.StartProcessingJobs();
     }
 
     public bool IsDisposed { get; private set; }
-
-    public void Dispose()
-    {
-        _scheduleQueue.OnJobReady -= JobReady!;
-
-        _cancellationTokenSource.Dispose();
-
-        IsDisposed = true;
-        _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
-    }
 
     public void ScheduleJob(ScheduledJobData jobData)
     {
@@ -53,19 +44,25 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to enqueue on {jobData.EnqueuedOn}");
     }
 
-    public bool AreQueuesEmpty()
+    public void Dispose()
     {
-        return _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+        _scheduleQueue.OnJobReady -= JobReady;
+        _runningJobQueue.OnJobFired -= JobFired;
+
+        _cancellationTokenSource.Dispose();
+
+        IsDisposed = true;
+        _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
-    private void JobReady(object sender, JobReadyEventArgs eventArgs)
+    private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
         _runningJobQueue.EnqueueJob(eventArgs.JobData);
 
         _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
     }
 
-    private void JobFired(object? sender, JobFiredEventArgs e)
+    private void JobFired(object? _, JobFiredEventArgs e)
     {
         var jobTask = RunJob(e.JobData.InstanceJob!, e.JobData);
 
@@ -90,24 +87,29 @@ internal class JobThreadHandler : IDisposable
         }
         catch (Exception e)
         {
-            _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
-
-            jobData.JobState = JobState.Failed;
-
-            if (jobData.ShouldRetry)
-            {
-                jobData.Retry();
-
-                jobData.JobState = JobState.Enqueued;
-                _runningJobQueue.EnqueueJob(jobData);
-
-                _configuration.Logger.LogDebug(
-                    $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
-            }
+            HandleFailingJob(jobData, e);
         }
         finally
         {
             _runningJobQueue.JobFinished();
+        }
+    }
+
+    private void HandleFailingJob(ScheduledJobData jobData, Exception e)
+    {
+        _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
+
+        jobData.JobState = JobState.Failed;
+
+        if (jobData.ShouldRetry)
+        {
+            jobData.Retry();
+
+            jobData.JobState = JobState.Enqueued;
+            _runningJobQueue.EnqueueJob(jobData);
+
+            _configuration.Logger.LogDebug(
+                $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
         }
     }
 }

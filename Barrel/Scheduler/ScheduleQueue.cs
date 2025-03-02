@@ -14,7 +14,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
 
     private readonly SortedList<DateTime, ScheduledJobData> _queue = new();
 
-    public void StartProcessSchedules()
+    public void StartProcessingSchedules()
     {
         _ = Task.Run(ProcessSchedules);
     }

@@ -13,11 +13,9 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     public bool IsEmpty => _queue.IsEmpty;
 
     private readonly ConcurrentQueue<ScheduledJobData> _queue = new();
-    private readonly int _pollingRate = pollingRate;
-    private readonly CancellationTokenSource _cancellationTokenSource = cancellationTokenSource;
     private readonly SemaphoreSlim _semaphore = new(maxConcurrentJobs);
 
-    public void StartProcessJobs()
+    public void StartProcessingJobs()
     {
         _ = Task.Run(ProcessJobs);
     }
@@ -34,11 +32,11 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
     private async Task ProcessJobs()
     {
-        while (!_cancellationTokenSource.Token.IsCancellationRequested)
+        while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
             if (!_queue.TryDequeue(out var jobData))
             {
-                await Task.Delay(_pollingRate);
+                await Task.Delay(pollingRate);
                 continue;
             }
 
