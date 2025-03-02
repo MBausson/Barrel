@@ -53,7 +53,9 @@ public class JobScheduler : IDisposable
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     public ScheduledJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
     {
-        return ScheduleFromData(DataFromJobInstance(job, options));
+        var jobData = new JobDataFactory().Build(job, options);
+
+        return ScheduleFromJobData(jobData);
     }
 
     /// <summary>
@@ -64,10 +66,12 @@ public class JobScheduler : IDisposable
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     public ScheduledJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        return ScheduleFromData(DataFromJobClass<T>(options));
+        var jobData = new JobDataFactory().Build<T>(options);
+
+        return ScheduleFromJobData(jobData);
     }
 
-    private ScheduledJobData ScheduleFromData(ScheduledJobData jobData)
+    private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
     {
         _threadHandler.ScheduleJob(jobData);
 
@@ -81,30 +85,5 @@ public class JobScheduler : IDisposable
     public async Task WaitAllJobs()
     {
         while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty) await Task.Delay(50);
-    }
-
-    private ScheduledJobData DataFromJobClass<T>(ScheduleOptions options) where T : BaseJob, new()
-    {
-        return SetDataToJobData(
-            jobData: ScheduledJobData.FromJobClass<T>(),
-            options
-            );
-    }
-
-    private ScheduledJobData DataFromJobInstance(BaseJob jobInstance, ScheduleOptions options)
-    {
-        return SetDataToJobData(
-            jobData: ScheduledJobData.FromJobInstance(jobInstance),
-            options
-            );
-    }
-
-    private ScheduledJobData SetDataToJobData(ScheduledJobData jobData, ScheduleOptions options)
-    {
-        jobData.JobPriority = options.Priority;
-        jobData.EnqueuedOn = DateTime.Now + options.Delay;
-        jobData.MaxRetryAttempts = options.MaxRetries;
-
-        return jobData;
     }
 }
