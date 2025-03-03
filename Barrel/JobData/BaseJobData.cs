@@ -22,6 +22,8 @@ public abstract class BaseJobData
 
     public int RetryAttempts { get; internal set; }
 
+    public bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
+
     public Type? JobClass { get; internal set; }
 
     public BaseJob? Instance { get; internal set; }

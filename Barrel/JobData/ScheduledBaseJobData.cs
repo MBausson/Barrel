@@ -8,7 +8,5 @@ public class ScheduledBaseJobData : BaseJobData
 
     public DateTime EnqueuedOn { get; internal set; }
 
-    internal bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
-
     public override DateTime NextScheduleOn() => EnqueuedOn;
 }
