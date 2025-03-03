@@ -64,4 +64,22 @@ public class ScheduleOptionsTests
 
         Assert.Equal(value, _options.MaxRetries);
     }
+
+    //  Ensures that NextScheduleOn returns the current datetime when no delay is applied
+    [Fact]
+    public void NextScheduleOn_NoDelayTest()
+    {
+        Assert.Equal(DateTime.Now, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+    }
+
+    //  Ensures that NextScheduleOn returns the valid datetime when delay is applied
+    [Fact]
+    public void NextScheduleOn_WithDelayTest()
+    {
+        var secondsDelay = Random.Shared.NextInt64(1, 3600);
+
+        _options.WithDelay(TimeSpan.FromSeconds(secondsDelay));
+
+        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsDelay), _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+    }
 }
