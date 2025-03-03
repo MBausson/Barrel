@@ -1,4 +1,6 @@
 ﻿using Barrel.Configuration;
+using Barrel.JobData;
+using Barrel.JobData.Factory;
 using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
@@ -25,6 +27,15 @@ public class JobScheduler : IDisposable
         _threadHandler.Dispose();
 
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
+    }
+
+    public RecurrentJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
+    {
+        var jobData = new RecurrentJobDataFactory().Build<T>(options);
+
+        _threadHandler.ScheduleRecurrentJob(jobData);
+
+        return jobData;
     }
 
     /// <summary>

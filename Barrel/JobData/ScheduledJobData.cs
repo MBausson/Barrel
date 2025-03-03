@@ -1,10 +1,8 @@
-﻿namespace Barrel;
+﻿namespace Barrel.JobData;
 
 public class ScheduledJobData
 {
-    private Type? _jobClass;
-
-    private ScheduledJobData()
+    internal ScheduledJobData()
     {
     }
 
@@ -26,7 +24,9 @@ public class ScheduledJobData
 
     public DateTime EnqueuedOn { get; internal set; }
 
-    public BaseJob? InstanceJob { get; private set; }
+    public BaseJob? Instance { get; internal set; }
+
+    public Type? JobClass { get; internal set; }
 
     public int MaxRetryAttempts { get; internal set; }
 
@@ -34,40 +34,24 @@ public class ScheduledJobData
 
     internal bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
 
-    public static ScheduledJobData FromJobInstance(BaseJob jobInstance)
-    {
-        return new ScheduledJobData
-        {
-            InstanceJob = jobInstance
-        };
-    }
-
-    public static ScheduledJobData FromJobClass<T>() where T : BaseJob, new()
-    {
-        return new ScheduledJobData
-        {
-            _jobClass = typeof(T)
-        };
-    }
-
     //  If not already done, instantiate the job's class, stores it and returns it
     public BaseJob InstantiateJob()
     {
-        if (_jobClass is null || InstanceJob is not null) return InstanceJob!;
+        if (JobClass is null || Instance is not null) return Instance!;
 
-        InstanceJob = (BaseJob)Activator.CreateInstance(_jobClass)!;
+        Instance = (BaseJob)Activator.CreateInstance(JobClass)!;
 
-        return InstanceJob;
+        return Instance;
     }
 
     public bool HasInstance()
     {
-        return InstanceJob is not null;
+        return Instance is not null;
     }
 
     internal void Retry()
     {
         RetryAttempts++;
-        InstanceJob = null;
+        Instance = null;
     }
 }

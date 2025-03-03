@@ -1,4 +1,6 @@
-﻿namespace BarrelTest.Integrations;
+﻿using Barrel.JobData;
+
+namespace BarrelTest.Integrations;
 
 /// <summary>
 ///     Any test class that intends to schedule Jobs should inherit from this class.

@@ -1,4 +1,6 @@
-﻿namespace Barrel.Scheduler;
+﻿using Barrel.JobData;
+
+namespace Barrel.Scheduler;
 
 public class JobReadyEventArgs(ScheduledJobData jobData) : EventArgs
 {

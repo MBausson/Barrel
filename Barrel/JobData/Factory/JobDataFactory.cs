@@ -1,19 +1,25 @@
 ﻿using Barrel.Scheduler;
 
-namespace Barrel;
+namespace Barrel.JobData.Factory;
 
-public class JobDataFactory : IJobDataFactory<ScheduledJobData>
+public class JobDataFactory : IJobDataFactory<ScheduledJobData, ScheduleOptions>
 {
-    public ScheduledJobData Build<T>(ScheduleOptions options) where T : BaseJob, new()
+    public ScheduledJobData Build<TJob>(ScheduleOptions options) where TJob : BaseJob, new()
     {
-        var jobData = ScheduledJobData.FromJobClass<T>();
+        var jobData = new ScheduledJobData
+        {
+            JobClass = typeof(TJob)
+        };
 
         return SetDataToJobData(jobData, options);
     }
 
     public ScheduledJobData Build(BaseJob job, ScheduleOptions options)
     {
-        var jobData = ScheduledJobData.FromJobInstance(job);
+        var jobData = new ScheduledJobData
+        {
+            Instance = job
+        };
 
         return SetDataToJobData(jobData, options);
     }

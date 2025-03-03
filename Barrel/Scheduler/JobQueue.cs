@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Barrel.JobData;
 
 namespace Barrel.Scheduler;
 
