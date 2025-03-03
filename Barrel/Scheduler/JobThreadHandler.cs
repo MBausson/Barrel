@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Barrel.Configuration;
 using Barrel.JobData;
+using Barrel.Scheduler.Queues;
 using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;

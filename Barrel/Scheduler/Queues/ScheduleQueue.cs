@@ -1,6 +1,6 @@
 ﻿using Barrel.JobData;
 
-namespace Barrel.Scheduler;
+namespace Barrel.Scheduler.Queues;
 
 public class JobReadyEventArgs(ScheduledJobData jobData) : EventArgs
 {
