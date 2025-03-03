@@ -2,11 +2,11 @@
 
 namespace Barrel.JobData.Factory;
 
-public class RecurrentJobDataFactory : IJobDataFactory<RecurrentJobData, RecurrentScheduleOptions>
+public class RecurrentJobDataFactory : IJobDataFactory<RecurrentBaseJobData, RecurrentScheduleOptions>
 {
-    public RecurrentJobData Build<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
+    public RecurrentBaseJobData Build<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
     {
-        var jobData = new RecurrentJobData
+        var jobData = new RecurrentBaseJobData
         {
             JobClass = typeof(TJob),
             Options = options
@@ -15,9 +15,9 @@ public class RecurrentJobDataFactory : IJobDataFactory<RecurrentJobData, Recurre
         return jobData;
     }
 
-    public RecurrentJobData Build(BaseJob job, RecurrentScheduleOptions options)
+    public RecurrentBaseJobData Build(BaseJob job, RecurrentScheduleOptions options)
     {
-        var jobData = new RecurrentJobData
+        var jobData = new RecurrentBaseJobData
         {
             Options = options,
             Instance = job

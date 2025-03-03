@@ -50,30 +50,30 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
-    public void ScheduleJob(ScheduledJobData jobData)
+    public void ScheduleJob(ScheduledBaseJobData baseJobData)
     {
-        _scheduleQueue.ScheduleJob(jobData);
+        _scheduleQueue.ScheduleJob(baseJobData);
 
-        _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to run on {jobData.EnqueuedOn}");
+        _configuration.Logger.LogInformation($"Scheduled job {baseJobData.JobId} to run on {baseJobData.EnqueuedOn}");
     }
 
-    public void ScheduleRecurrentJob(RecurrentJobData jobData)
+    public void ScheduleRecurrentJob(RecurrentBaseJobData baseJobData)
     {
-        _scheduleQueue.ScheduleJob(jobData);
+        _scheduleQueue.ScheduleJob(baseJobData);
 
-        _configuration.Logger.LogInformation($"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
+        _configuration.Logger.LogInformation($"Scheduled recurrent job {baseJobData.JobId}. Next scheduled on {baseJobData.NextScheduleOn()}");
     }
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
-        _runningJobQueue.EnqueueJob(eventArgs.JobData);
+        _runningJobQueue.EnqueueJob(eventArgs.BaseJobData);
 
-        _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
+        _configuration.Logger.LogDebug($"Enqueued job {eventArgs.BaseJobData.JobId}");
     }
 
     private void JobFired(object? _, JobFiredEventArgs e)
     {
-        var jobTask = RunJob(e.JobData.Instance!, e.JobData);
+        var jobTask = RunJob(e.BaseJobData.Instance!, e.BaseJobData);
 
         _runningJobs[jobTask.Id] = jobTask;
 
@@ -81,25 +81,25 @@ internal class JobThreadHandler : IDisposable
         jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
     }
 
-    private async Task RunJob(BaseJob jobInstance, ScheduledJobData jobData)
+    private async Task RunJob(BaseJob jobInstance, ScheduledBaseJobData baseJobData)
     {
         try
         {
-            _configuration.Logger.LogDebug($"Launching job {jobData.JobId} ...");
+            _configuration.Logger.LogDebug($"Launching job {baseJobData.JobId} ...");
 
             //  Job execution
             await jobInstance.BeforePerformAsync();
             await jobInstance.PerformAsync();
 
-            jobData.JobState = JobState.Success;
+            baseJobData.JobState = JobState.Success;
 
-            _configuration.Logger.LogDebug($"Job {jobData.JobId} done !");
+            _configuration.Logger.LogDebug($"Job {baseJobData.JobId} done !");
 
-            RescheduleIfRecurrent(jobData);
+            RescheduleIfRecurrent(baseJobData);
         }
         catch (Exception e)
         {
-            HandleFailingJob(jobData, e);
+            HandleFailingJob(baseJobData, e);
         }
         finally
         {
@@ -107,35 +107,35 @@ internal class JobThreadHandler : IDisposable
         }
     }
 
-    private void HandleFailingJob(ScheduledJobData jobData, Exception e)
+    private void HandleFailingJob(ScheduledBaseJobData baseJobData, Exception e)
     {
-        _configuration.Logger.LogError(e, $"Job {jobData.JobId} failure.");
+        _configuration.Logger.LogError(e, $"Job {baseJobData.JobId} failure.");
 
-        jobData.JobState = JobState.Failed;
+        baseJobData.JobState = JobState.Failed;
 
-        if (jobData.ShouldRetry)
+        if (baseJobData.ShouldRetry)
         {
-            jobData.Retry();
+            baseJobData.Retry();
 
-            jobData.JobState = JobState.Enqueued;
-            _runningJobQueue.EnqueueJob(jobData);
+            baseJobData.JobState = JobState.Enqueued;
+            _runningJobQueue.EnqueueJob(baseJobData);
 
             _configuration.Logger.LogDebug(
-                $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
+                $"Retrying job {baseJobData.JobId} ({baseJobData.RetryAttempts}/{baseJobData.MaxRetryAttempts}) ...");
         }
-        else RescheduleIfRecurrent(jobData);
+        else RescheduleIfRecurrent(baseJobData);
 
         //  For recurrent failing jobs, we re-schedule when the job cannot be retried
     }
 
-    private void RescheduleIfRecurrent(ScheduledJobData jobData)
+    private void RescheduleIfRecurrent(ScheduledBaseJobData baseJobData)
     {
-        if (jobData is RecurrentJobData recurrentJobData)
+        if (baseJobData is RecurrentBaseJobData recurrentJobData)
         {
             recurrentJobData.EnqueuedOn = recurrentJobData.NextScheduleOn();
             _scheduleQueue.ScheduleJob(recurrentJobData);
 
-            _configuration.Logger.LogInformation($"Rescheduling reccurent job {jobData.JobId} to run on {jobData.EnqueuedOn}");
+            _configuration.Logger.LogInformation($"Rescheduling reccurent job {baseJobData.JobId} to run on {baseJobData.EnqueuedOn}");
         }
     }
 }

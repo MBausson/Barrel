@@ -2,14 +2,14 @@
 
 namespace Barrel.Scheduler.Queues;
 
-public class JobReadyEventArgs(ScheduledJobData jobData) : EventArgs
+public class JobReadyEventArgs(ScheduledBaseJobData baseJobData) : EventArgs
 {
-    public ScheduledJobData JobData { get; } = jobData;
+    public ScheduledBaseJobData BaseJobData { get; } = baseJobData;
 }
 
 public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellationTokenSource)
 {
-    private readonly SortedList<DateTime, ScheduledJobData> _queue = new();
+    private readonly SortedList<DateTime, ScheduledBaseJobData> _queue = new();
     public bool IsEmpty => _queue.Count == 0;
     public event EventHandler<JobReadyEventArgs> OnJobReady = null!;
 
@@ -18,13 +18,13 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         _ = Task.Run(ProcessSchedules);
     }
 
-    public void ScheduleJob(ScheduledJobData jobData)
+    public void ScheduleJob(ScheduledBaseJobData baseJobData)
     {
-        jobData.JobState = JobState.Scheduled;
+        baseJobData.JobState = JobState.Scheduled;
 
         lock (_queue)
         {
-            _queue.Add(jobData.EnqueuedOn, jobData);
+            _queue.Add(baseJobData.EnqueuedOn, baseJobData);
         }
     }
 
@@ -32,7 +32,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
-            KeyValuePair<DateTime, ScheduledJobData>[] jobsToEnqueue;
+            KeyValuePair<DateTime, ScheduledBaseJobData>[] jobsToEnqueue;
 
             lock (_queue)
             {

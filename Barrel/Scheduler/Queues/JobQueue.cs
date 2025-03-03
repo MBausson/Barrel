@@ -3,14 +3,14 @@ using Barrel.JobData;
 
 namespace Barrel.Scheduler.Queues;
 
-internal class JobFiredEventArgs(ScheduledJobData jobData) : EventArgs
+internal class JobFiredEventArgs(ScheduledBaseJobData baseJobData) : EventArgs
 {
-    public readonly ScheduledJobData JobData = jobData;
+    public readonly ScheduledBaseJobData BaseJobData = baseJobData;
 }
 
 internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationTokenSource cancellationTokenSource)
 {
-    private readonly ConcurrentQueue<ScheduledJobData> _queue = new();
+    private readonly ConcurrentQueue<ScheduledBaseJobData> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(maxConcurrentJobs);
     public bool IsEmpty => _queue.IsEmpty;
     public event EventHandler<JobFiredEventArgs> OnJobFired = null!;
@@ -20,10 +20,10 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
         _ = Task.Run(ProcessJobs);
     }
 
-    public void EnqueueJob(ScheduledJobData jobData)
+    public void EnqueueJob(ScheduledBaseJobData baseJobData)
     {
-        _queue.Enqueue(jobData);
-        jobData.JobState = JobState.Enqueued;
+        _queue.Enqueue(baseJobData);
+        baseJobData.JobState = JobState.Enqueued;
     }
 
     //  Called when a job finished its work

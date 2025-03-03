@@ -2,11 +2,11 @@
 
 namespace Barrel.JobData.Factory;
 
-public class JobDataFactory : IJobDataFactory<ScheduledJobData, ScheduleOptions>
+public class JobDataFactory : IJobDataFactory<ScheduledBaseJobData, ScheduleOptions>
 {
-    public ScheduledJobData Build<TJob>(ScheduleOptions options) where TJob : BaseJob, new()
+    public ScheduledBaseJobData Build<TJob>(ScheduleOptions options) where TJob : BaseJob, new()
     {
-        var jobData = new ScheduledJobData
+        var jobData = new ScheduledBaseJobData
         {
             JobClass = typeof(TJob)
         };
@@ -14,9 +14,9 @@ public class JobDataFactory : IJobDataFactory<ScheduledJobData, ScheduleOptions>
         return SetDataToJobData(jobData, options);
     }
 
-    public ScheduledJobData Build(BaseJob job, ScheduleOptions options)
+    public ScheduledBaseJobData Build(BaseJob job, ScheduleOptions options)
     {
-        var jobData = new ScheduledJobData
+        var jobData = new ScheduledBaseJobData
         {
             Instance = job
         };
@@ -24,12 +24,12 @@ public class JobDataFactory : IJobDataFactory<ScheduledJobData, ScheduleOptions>
         return SetDataToJobData(jobData, options);
     }
 
-    private ScheduledJobData SetDataToJobData(ScheduledJobData jobData, ScheduleOptions options)
+    private ScheduledBaseJobData SetDataToJobData(ScheduledBaseJobData baseJobData, ScheduleOptions options)
     {
-        jobData.JobPriority = options.Priority;
-        jobData.EnqueuedOn = options.NextScheduleOn();
-        jobData.MaxRetryAttempts = options.MaxRetries;
+        baseJobData.JobPriority = options.Priority;
+        baseJobData.EnqueuedOn = options.NextScheduleOn();
+        baseJobData.MaxRetryAttempts = options.MaxRetries;
 
-        return jobData;
+        return baseJobData;
     }
 }
