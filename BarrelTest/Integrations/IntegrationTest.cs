@@ -24,7 +24,7 @@ public class IntegrationTest : XunitContextBase, IDisposable
         Output = output;
     }
 
-    public void Dispose()
+    public new void Dispose()
     {
         if (Scheduler is not null) Scheduler.Dispose();
     }
@@ -34,7 +34,7 @@ public class IntegrationTest : XunitContextBase, IDisposable
         await Task.WhenAny(job.JobRunningSource.Task, Task.Delay(JobWaitTimeout));
     }
 
-    protected async Task WaitForNonInstancedJobToRun(ScheduledJobData jobData)
+    protected async Task WaitForNonInstancedJobToRun(BaseJobData jobData)
     {
         await Task.WhenAny(Task.Run(async () =>
         {
