@@ -31,11 +31,22 @@ public class JobScheduler : IDisposable
 
     public RecurrentJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
     {
-        var jobData = new RecurrentJobDataFactory().Build<T>(options);
+        var jobData = new RecurrentJobDataFactory().Create<T>(options);
 
         _threadHandler.ScheduleRecurrentJob(jobData);
 
         return jobData;
+    }
+
+    //  TODO: Return a CalendarJobData instead. This will indicate future and past executions
+    public IEnumerable<ScheduledBaseJobData> ScheduleCalendar<T>(CalendarScheduleOptions options) where T : BaseJob, new()
+    {
+        if (options.ScheduleDateTimes.Count == 0) throw new InvalidOperationException($"No date have been specified for this schedule.");
+
+        var jobsData = new JobDataFactory().CreateFromCalendar<T>(options);
+        foreach (var jobData in jobsData) _threadHandler.ScheduleJob(jobData);
+
+        return jobsData;
     }
 
     /// <summary>
@@ -64,7 +75,7 @@ public class JobScheduler : IDisposable
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     public ScheduledBaseJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
     {
-        var jobData = new JobDataFactory().Build(job, options);
+        var jobData = new JobDataFactory().Create(job, options);
 
         return ScheduleFromJobData(jobData);
     }
@@ -77,7 +88,7 @@ public class JobScheduler : IDisposable
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     public ScheduledBaseJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        var jobData = new JobDataFactory().Build<T>(options);
+        var jobData = new JobDataFactory().Create<T>(options);
 
         return ScheduleFromJobData(jobData);
     }

@@ -2,7 +2,7 @@
 
 public interface IJobDataFactory<out T, TOptions> where T : ScheduledBaseJobData
 {
-    public T Build<TJob>(TOptions options) where TJob : BaseJob, new();
+    public T Create<TJob>(TOptions options) where TJob : BaseJob, new();
 
-    public T Build(BaseJob job, TOptions options);
+    public T Create(BaseJob job, TOptions options);
 }

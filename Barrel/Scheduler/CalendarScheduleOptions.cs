@@ -1,16 +1,16 @@
 ﻿namespace Barrel.Scheduler;
 
-public class CalendarScheduleOptions : RecurrentScheduleOptions
+public class CalendarScheduleOptions : ScheduleOptions
 {
-    public IReadOnlyList<DateTime> SchedulesDatetime => _schedulesDatetime;
+    public IReadOnlyList<DateTime> ScheduleDateTimes => _scheduleDateTimes.ToArray();
 
-    private List<DateTime> _schedulesDatetime = new();
+    private readonly Queue<DateTime> _scheduleDateTimes = new();
 
     public CalendarScheduleOptions WithDate(DateTime dateTime)
     {
         if (DateTime.Now > dateTime) throw new ArgumentOutOfRangeException($"Datetime {dateTime} is anterior to the current date");
 
-        _schedulesDatetime.Add(dateTime);
+        _scheduleDateTimes.Enqueue(dateTime);
 
         return this;
     }
@@ -22,12 +22,5 @@ public class CalendarScheduleOptions : RecurrentScheduleOptions
         return this;
     }
 
-    public Queue<DateTime> ToSchedulesQueue()
-    {
-        var queue = new Queue<DateTime>();
-
-        _schedulesDatetime.ForEach(d => queue.Enqueue(d));
-
-        return queue;
-    }
+    public override DateTime NextScheduleOn() => _scheduleDateTimes.Peek();
 }

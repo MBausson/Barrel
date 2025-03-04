@@ -4,7 +4,28 @@ namespace Barrel.JobData.Factory;
 
 public class JobDataFactory : IJobDataFactory<ScheduledBaseJobData, ScheduleOptions>
 {
-    public ScheduledBaseJobData Build<TJob>(ScheduleOptions options) where TJob : BaseJob, new()
+    public IReadOnlyList<ScheduledBaseJobData> CreateFromCalendar<TJob>(CalendarScheduleOptions options) where TJob : BaseJob, new()
+    {
+        var jobsData = new List<ScheduledBaseJobData>();
+
+        foreach (var scheduleDateTime in options.ScheduleDateTimes)
+        {
+            var jobData = new ScheduledBaseJobData
+            {
+                JobClass = typeof(TJob)
+            };
+
+            jobData.JobPriority = options.Priority;
+            jobData.EnqueuedOn = scheduleDateTime;
+            jobData.MaxRetryAttempts = options.MaxRetries;
+
+            jobsData.Add(jobData);
+        }
+
+        return jobsData;
+    }
+
+    public ScheduledBaseJobData Create<TJob>(ScheduleOptions options) where TJob : BaseJob, new()
     {
         var jobData = new ScheduledBaseJobData
         {
@@ -14,7 +35,7 @@ public class JobDataFactory : IJobDataFactory<ScheduledBaseJobData, ScheduleOpti
         return SetDataToJobData(jobData, options);
     }
 
-    public ScheduledBaseJobData Build(BaseJob job, ScheduleOptions options)
+    public ScheduledBaseJobData Create(BaseJob job, ScheduleOptions options)
     {
         var jobData = new ScheduledBaseJobData
         {
