@@ -29,7 +29,7 @@ public class JobScheduler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
-    public RecurrentBaseJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
+    public RecurrentJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
     {
         var jobData = new RecurrentJobDataFactory().Build<T>(options);
 

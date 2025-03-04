@@ -45,6 +45,8 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
 
             await _semaphore.WaitAsync();
 
+            if (jobData is RecurrentJobData recurrentJobData) recurrentJobData.OnRecurrentJobFired();
+
             jobData.JobState = JobState.Running;
 
             //  If the job hasn't been instantiated, do it now

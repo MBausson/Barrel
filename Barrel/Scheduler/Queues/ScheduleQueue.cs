@@ -36,6 +36,10 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
 
             lock (_queue)
             {
+                //  Improve this. Since this collection is sorted, we know dates that precede a future dates are also futures
+                //  Thus we can stop iterating after a DateTime comparison fails
+                //  We could also cache the result of DateTime.Now
+                //  TODO
                 jobsToEnqueue = _queue
                     .Where(kv => kv.Key <= DateTime.Now)
                     .ToArray();

@@ -2,27 +2,27 @@
 
 namespace Barrel.JobData.Factory;
 
-public class RecurrentJobDataFactory : IJobDataFactory<RecurrentBaseJobData, RecurrentScheduleOptions>
+public class RecurrentJobDataFactory : IJobDataFactory<RecurrentJobData, RecurrentScheduleOptions>
 {
-    public RecurrentBaseJobData Build<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
+    public RecurrentJobData Build<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
     {
-        var jobData = new RecurrentBaseJobData
+        if (options is CalendarScheduleOptions calendarOptions)
+            return new CalendarJobData
+            {
+                JobClass = typeof(TJob),
+                Options = options,
+                SchedulesDatetime = calendarOptions.ToSchedulesQueue(),
+            };
+
+        return new RecurrentJobData
         {
             JobClass = typeof(TJob),
             Options = options
         };
-
-        return jobData;
     }
 
-    public RecurrentBaseJobData Build(BaseJob job, RecurrentScheduleOptions options)
+    public RecurrentJobData Build(BaseJob job, RecurrentScheduleOptions options)
     {
-        var jobData = new RecurrentBaseJobData
-        {
-            Options = options,
-            Instance = job
-        };
-
-        return jobData;
+        throw new InvalidOperationException($"Cannot use instanced jobs for recurrent jobs.");
     }
 }

@@ -57,11 +57,11 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {baseJobData.JobId} to run on {baseJobData.EnqueuedOn}");
     }
 
-    public void ScheduleRecurrentJob(RecurrentBaseJobData baseJobData)
+    public void ScheduleRecurrentJob(RecurrentJobData jobData)
     {
-        _scheduleQueue.ScheduleJob(baseJobData);
+        _scheduleQueue.ScheduleJob(jobData);
 
-        _configuration.Logger.LogInformation($"Scheduled recurrent job {baseJobData.JobId}. Next scheduled on {baseJobData.NextScheduleOn()}");
+        _configuration.Logger.LogInformation($"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
     }
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
@@ -130,8 +130,14 @@ internal class JobThreadHandler : IDisposable
 
     private void RescheduleIfRecurrent(BaseJobData jobData)
     {
-        if (jobData is RecurrentBaseJobData recurrentJobData)
+        if (jobData is RecurrentJobData recurrentJobData)
         {
+            if (!recurrentJobData.HasNextSchedule())
+            {
+                _configuration.Logger.LogDebug($"Recurrent job {jobData.JobId} has no next schedule");
+                return;
+            }
+
             recurrentJobData.EnqueuedOn = recurrentJobData.NextScheduleOn();
             _scheduleQueue.ScheduleJob(recurrentJobData);
 
