@@ -7,12 +7,6 @@ namespace Barrel.JobData;
 //  giving the next schedule date, job id, etc...
 public class RecurrentJobData : ScheduledBaseJobData
 {
-    /// <summary>
-    /// Called when a recurrent job has been fired.
-    /// TODO: Remove when not needed anymore
-    /// </summary>
-    public virtual void OnRecurrentJobFired() { }
-
     public new virtual DateTime NextScheduleOn() => Options.NextScheduleOn();
 
     public override bool HasNextSchedule() => true;

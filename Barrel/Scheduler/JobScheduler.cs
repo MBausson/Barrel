@@ -38,7 +38,7 @@ public class JobScheduler : IDisposable
         return jobData;
     }
 
-    //  TODO: Return a CalendarJobData instead. This will indicate future and past executions
+    //  TODO: Return a CalendarJobsData instead. This will indicate future and past executions
     public IEnumerable<ScheduledBaseJobData> ScheduleCalendar<T>(CalendarScheduleOptions options) where T : BaseJob, new()
     {
         if (options.ScheduleDateTimes.Count == 0) throw new InvalidOperationException($"No date have been specified for this schedule.");
