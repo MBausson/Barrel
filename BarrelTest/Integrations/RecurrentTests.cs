@@ -44,7 +44,7 @@ public class RecurrentTests(ITestOutputHelper output) : IntegrationTest(output)
         public static IReadOnlyList<DateTime> ExecutionDates => _executionDates;
         public static int ExecutionsCount => _executionDates.Count;
 
-        private static List<DateTime> _executionDates = new();
+        private static readonly List<DateTime> _executionDates = new();
 
         protected override Task PerformAsync()
         {
