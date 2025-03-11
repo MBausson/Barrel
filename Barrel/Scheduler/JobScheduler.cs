@@ -1,4 +1,6 @@
 ﻿using Barrel.Configuration;
+using Barrel.JobData;
+using Barrel.JobData.Factory;
 using Microsoft.Extensions.Logging;
 
 namespace Barrel.Scheduler;
@@ -27,12 +29,31 @@ public class JobScheduler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
+    public RecurrentJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
+    {
+        var jobData = new JobDataFactory().Create<RecurrentJobData, T, RecurrentScheduleOptions>(options);
+
+        _threadHandler.ScheduleRecurrentJob(jobData);
+
+        return jobData;
+    }
+
+    public IEnumerable<ScheduledBaseJobData> ScheduleCalendar<T>(CalendarScheduleOptions options) where T : BaseJob, new()
+    {
+        if (options.ScheduleDateTimes.Count == 0) throw new InvalidOperationException($"No date have been specified for this schedule.");
+
+        var calendarJobData = new JobDataFactory().Create<CalendarJobData, T, CalendarScheduleOptions>(options);
+        foreach (var jobData in calendarJobData.ScheduledJobs) _threadHandler.ScheduleJob(jobData);
+
+        return calendarJobData.ScheduledJobs;
+    }
+
     /// <summary>
     ///     Schedules a job to run with no delay.
     /// </summary>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     /// <typeparam name="T">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
-    public ScheduledJobData Schedule<T>() where T : BaseJob, new()
+    public ScheduledBaseJobData Schedule<T>() where T : BaseJob, new()
     {
         return Schedule(new T(), ScheduleOptions.Default);
     }
@@ -41,7 +62,7 @@ public class JobScheduler : IDisposable
     ///     Schedules a job to run with no delay.
     /// </summary>
     /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
-    public ScheduledJobData Schedule<T>(T job) where T : BaseJob
+    public ScheduledBaseJobData Schedule<T>(T job) where T : BaseJob
     {
         return Schedule(job, ScheduleOptions.Default);
     }
@@ -51,9 +72,11 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <param name="job">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</param>
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
-    public ScheduledJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
+    public ScheduledBaseJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
     {
-        return ScheduleFromData(DataFromJobInstance(job, options));
+        var jobData = new JobDataFactory().Create<ScheduledBaseJobData, ScheduleOptions>(job, options);
+
+        return ScheduleFromJobData(jobData);
     }
 
     /// <summary>
@@ -62,16 +85,18 @@ public class JobScheduler : IDisposable
     /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     /// <typeparam name="T">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
-    public ScheduledJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
+    public ScheduledBaseJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        return ScheduleFromData(DataFromJobClass<T>(options));
+        var jobData = new JobDataFactory().Create<ScheduledBaseJobData, T, ScheduleOptions>(options);
+
+        return ScheduleFromJobData(jobData);
     }
 
-    private ScheduledJobData ScheduleFromData(ScheduledJobData jobData)
+    private ScheduledBaseJobData ScheduleFromJobData(ScheduledBaseJobData baseJobData)
     {
-        _threadHandler.ScheduleJob(jobData);
+        _threadHandler.ScheduleJob(baseJobData);
 
-        return jobData;
+        return baseJobData;
     }
 
     /// <summary>
@@ -81,27 +106,5 @@ public class JobScheduler : IDisposable
     public async Task WaitAllJobs()
     {
         while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty) await Task.Delay(50);
-    }
-
-    private ScheduledJobData DataFromJobClass<T>(ScheduleOptions options) where T : BaseJob, new()
-    {
-        var data = ScheduledJobData.FromJobClass<T>();
-
-        data.JobPriority = options.Priority;
-        data.EnqueuedOn = DateTime.Now + options.Delay;
-        data.MaxRetryAttempts = options.MaxRetries;
-
-        return data;
-    }
-
-    private ScheduledJobData DataFromJobInstance(BaseJob jobInstance, ScheduleOptions options)
-    {
-        var data = ScheduledJobData.FromJobInstance(jobInstance);
-
-        data.JobPriority = options.Priority;
-        data.EnqueuedOn = DateTime.Now + options.Delay;
-        data.MaxRetryAttempts = options.MaxRetries;
-
-        return data;
     }
 }
