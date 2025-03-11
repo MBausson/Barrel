@@ -1,8 +1,15 @@
-﻿namespace Barrel.JobData.Factory;
+﻿using Barrel.Scheduler;
 
-public interface IJobDataFactory<out T, TOptions> where T : ScheduledBaseJobData
+namespace Barrel.JobData.Factory;
+
+public interface IJobDataFactory
 {
-    public T Create<TJob>(TOptions options) where TJob : BaseJob, new();
+    public TJobData Create<TJobData, TJob, TOptions>(TOptions options)
+        where TJobData : ScheduledBaseJobData
+        where TJob : BaseJob, new()
+        where TOptions : ScheduleOptions;
 
-    public T Create(BaseJob job, TOptions options);
+    public TJobData Create<TJobData, TOptions>(BaseJob job, TOptions options)
+        where TJobData : ScheduledBaseJobData
+        where TOptions : ScheduleOptions;
 }

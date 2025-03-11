@@ -31,22 +31,21 @@ public class JobScheduler : IDisposable
 
     public RecurrentJobData ScheduleRecurrent<T>(RecurrentScheduleOptions options) where T : BaseJob, new()
     {
-        var jobData = new RecurrentJobDataFactory().Create<T>(options);
+        var jobData = new JobDataFactory().Create<RecurrentJobData, T, RecurrentScheduleOptions>(options);
 
         _threadHandler.ScheduleRecurrentJob(jobData);
 
         return jobData;
     }
 
-    //  TODO: Return a CalendarJobsData instead. This will indicate future and past executions
     public IEnumerable<ScheduledBaseJobData> ScheduleCalendar<T>(CalendarScheduleOptions options) where T : BaseJob, new()
     {
         if (options.ScheduleDateTimes.Count == 0) throw new InvalidOperationException($"No date have been specified for this schedule.");
 
-        var jobsData = new JobDataFactory().CreateFromCalendar<T>(options);
-        foreach (var jobData in jobsData) _threadHandler.ScheduleJob(jobData);
+        var calendarJobData = new JobDataFactory().Create<CalendarJobData, T, CalendarScheduleOptions>(options);
+        foreach (var jobData in calendarJobData.ScheduledJobs) _threadHandler.ScheduleJob(jobData);
 
-        return jobsData;
+        return calendarJobData.ScheduledJobs;
     }
 
     /// <summary>
@@ -75,7 +74,7 @@ public class JobScheduler : IDisposable
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     public ScheduledBaseJobData Schedule<T>(T job, ScheduleOptions options) where T : BaseJob
     {
-        var jobData = new JobDataFactory().Create(job, options);
+        var jobData = new JobDataFactory().Create<ScheduledBaseJobData, ScheduleOptions>(job, options);
 
         return ScheduleFromJobData(jobData);
     }
@@ -88,7 +87,7 @@ public class JobScheduler : IDisposable
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     public ScheduledBaseJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
     {
-        var jobData = new JobDataFactory().Create<T>(options);
+        var jobData = new JobDataFactory().Create<ScheduledBaseJobData, T, ScheduleOptions>(options);
 
         return ScheduleFromJobData(jobData);
     }

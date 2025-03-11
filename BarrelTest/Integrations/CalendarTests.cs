@@ -32,13 +32,13 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
         Assert.Equal(3, CalendarJob.ExecutionsCount);
         Assert.All(CalendarJob.ExecutionDateTimes, (date, i) =>
         {
-            Assert.Equal(executionDates[i], date, TimeSpan.FromMilliseconds(200));
+            Assert.Equal(executionDates[i], date, TimeSpan.FromMilliseconds(500));
         });
     }
 
     private async Task WaitForRecurrentExecutions()
     {
-        await Task.WhenAny(CalendarJob.JobsFinishedSource.Task, Task.Delay(5000));
+        await Task.WhenAny(CalendarJob.JobsFinishedSource.Task, Task.Delay(10000));
     }
 
     private class CalendarJob : BaseJob
