@@ -139,6 +139,8 @@ internal class JobThreadHandler : IDisposable
             }
 
             recurrentJobData.EnqueuedOn = recurrentJobData.NextScheduleOn();
+            recurrentJobData.Instance = null;
+
             _scheduleQueue.ScheduleJob(recurrentJobData);
 
             _configuration.Logger.LogInformation($"Rescheduling reccurent job {jobData.JobId} to run on {recurrentJobData.EnqueuedOn}");
