@@ -6,13 +6,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarrelTest", "BarrelTest\Ba
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{B83300FF-1128-4F5B-B4B5-9660B5F6D533}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PonctualJobs", "PonctualJobs\PonctualJobs.csproj", "{359CC214-32F4-4B15-B253-0BA1E00E4664}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PonctualJobs", "Samples\PonctualJobs\PonctualJobs.csproj", "{359CC214-32F4-4B15-B253-0BA1E00E4664}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarJobs", "CalendarJobs\CalendarJobs.csproj", "{556B5D68-2A8A-450F-9117-A409AA1C75B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CalendarJobs", "Samples\CalendarJobs\CalendarJobs.csproj", "{556B5D68-2A8A-450F-9117-A409AA1C75B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecurrentJobs", "RecurrentJobs\RecurrentJobs.csproj", "{6823F2CB-DC4E-429A-9FA3-CA2B020B7AE7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecurrentJobs", "Samples\RecurrentJobs\RecurrentJobs.csproj", "{6823F2CB-DC4E-429A-9FA3-CA2B020B7AE7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerConfiguration", "SchedulerConfiguration\SchedulerConfiguration.csproj", "{944B7A95-0DFA-4B2E-8911-DC338420D3CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerConfiguration", "Samples\SchedulerConfiguration\SchedulerConfiguration.csproj", "{944B7A95-0DFA-4B2E-8911-DC338420D3CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
