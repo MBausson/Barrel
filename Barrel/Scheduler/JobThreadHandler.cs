@@ -59,6 +59,7 @@ internal class JobThreadHandler : IDisposable
 
     public void ScheduleRecurrentJob(RecurrentJobData jobData)
     {
+        jobData.EnqueuedOn = jobData.NextScheduleOn();
         _scheduleQueue.ScheduleJob(jobData);
 
         _configuration.Logger.LogInformation($"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
