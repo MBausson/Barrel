@@ -53,12 +53,12 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
 
             foreach (var (date, jobData) in jobsToEnqueue)
             {
+                OnJobReady?.Invoke(this, new JobReadyEventArgs(jobData));
+
                 lock (_queue)
                 {
                     _queue.Remove(date);
                 }
-
-                OnJobReady?.Invoke(this, new JobReadyEventArgs(jobData));
             }
         }
     }
