@@ -8,7 +8,8 @@ public class RecurrentTests(ITestOutputHelper output) : IntegrationTest(output)
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
         Assert.Throws<ArgumentOutOfRangeException>(() =>
-            Scheduler.ScheduleRecurrent<RecurrentJob>(new RecurrentScheduleOptions().Every(TimeSpan.FromMilliseconds(999))));
+            Scheduler.ScheduleRecurrent<RecurrentJob>(
+                new RecurrentScheduleOptions().Every(TimeSpan.FromMilliseconds(999))));
     }
 
     //  Ensures that a recurrent job gets executed every X delay
@@ -41,10 +42,10 @@ public class RecurrentTests(ITestOutputHelper output) : IntegrationTest(output)
     private class RecurrentJob : BaseJob
     {
         public static readonly TaskCompletionSource<bool> JobsFinishedSource = new();
-        public static IReadOnlyList<DateTime> ExecutionDates => _executionDates;
-        public static int ExecutionsCount => _executionDates.Count;
 
         private static readonly List<DateTime> _executionDates = new();
+        public static IReadOnlyList<DateTime> ExecutionDates => _executionDates;
+        public static int ExecutionsCount => _executionDates.Count;
 
         protected override Task PerformAsync()
         {

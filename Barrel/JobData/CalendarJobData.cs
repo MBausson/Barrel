@@ -1,6 +1,6 @@
 ﻿namespace Barrel.JobData;
 
-public class CalendarJobData : ScheduledBaseJobData
+public class CalendarJobData : ScheduledJobData
 {
-    public required ScheduledBaseJobData[] ScheduledJobs { get; init; }
+    public required ScheduledJobData[] ScheduledJobs { get; init; }
 }

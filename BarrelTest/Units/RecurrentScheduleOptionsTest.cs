@@ -17,10 +17,7 @@ public class RecurrentScheduleOptionsTest
     [Fact]
     public void Every_TooShortDelayTest()
     {
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
-        {
-            _options.Every(TimeSpan.FromMilliseconds(999));
-        });
+        Assert.Throws<ArgumentOutOfRangeException>(() => { _options.Every(TimeSpan.FromMilliseconds(999)); });
     }
 
     //  Ensures that NextScheduleOn returns the current datetime when no delay is applied
@@ -38,7 +35,8 @@ public class RecurrentScheduleOptionsTest
 
         _options.Every(TimeSpan.FromSeconds(secondsPeriodicity));
 
-        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsPeriodicity), _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsPeriodicity), _options.NextScheduleOn(),
+            TimeSpan.FromMilliseconds(999));
     }
 
     //  Ensures that NextScheduleOn returns the valid datetime when delay is applied
