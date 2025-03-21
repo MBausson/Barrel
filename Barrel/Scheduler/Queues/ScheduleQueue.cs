@@ -18,13 +18,13 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         _ = Task.Run(ProcessSchedules);
     }
 
-    public void ScheduleJob(ScheduledBaseJobData baseJobData)
+    public void ScheduleJob(ScheduledJobData jobData)
     {
-        baseJobData.JobState = JobState.Scheduled;
+        jobData.JobState = JobState.Scheduled;
 
         lock (_queue)
         {
-            _queue.Add(baseJobData.EnqueuedOn, baseJobData);
+            _queue.Add(jobData.EnqueuedOn, jobData);
         }
     }
 

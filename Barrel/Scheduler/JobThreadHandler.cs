@@ -54,11 +54,11 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
     }
 
-    public void ScheduleJob(ScheduledBaseJobData baseJobData)
+    public void ScheduleJob(ScheduledJobData jobData)
     {
-        _scheduleQueue.ScheduleJob(baseJobData);
+        _scheduleQueue.ScheduleJob(jobData);
 
-        _configuration.Logger.LogInformation($"Scheduled job {baseJobData.JobId} to run on {baseJobData.EnqueuedOn}");
+        _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to run on {jobData.EnqueuedOn}");
     }
 
     public void ScheduleRecurrentJob(RecurrentJobData jobData)

@@ -1,8 +1,8 @@
 ﻿namespace Barrel.JobData;
 
-public class ScheduledBaseJobData : BaseJobData
+public class ScheduledJobData : BaseJobData
 {
-    internal ScheduledBaseJobData()
+    internal ScheduledJobData()
     {
     }
 

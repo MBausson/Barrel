@@ -5,7 +5,7 @@ namespace Barrel.JobData;
 //  TODO: Remove the inheritance from ScheduledJobData
 //  Make so both jobdata classes implement an interface / abstract class
 //  giving the next schedule date, job id, etc...
-public class RecurrentJobData : ScheduledBaseJobData
+public class RecurrentJobData : ScheduledJobData
 {
     public new virtual DateTime NextScheduleOn() => Options.NextScheduleOn();
 
