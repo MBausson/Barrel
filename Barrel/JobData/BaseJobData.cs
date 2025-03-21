@@ -11,7 +11,7 @@ public abstract class BaseJobData
     /// <summary>
     ///     The priority level of a job, which will influence the scheduler
     /// </summary>
-    internal JobPriority JobPriority { get; set; }
+    public JobPriority JobPriority { get; internal set; }
 
     /// <summary>
     ///     The current state of a job. This value is updated by the scheduler.
@@ -31,7 +31,7 @@ public abstract class BaseJobData
     public abstract DateTime NextScheduleOn();
 
     //  If not already done, instantiate the job's class, stores it and returns it
-    public BaseJob InstantiateJob()
+    internal BaseJob InstantiateJob()
     {
         if (JobClass is null || Instance is not null) return Instance!;
 
@@ -40,7 +40,7 @@ public abstract class BaseJobData
         return Instance;
     }
 
-    public bool HasInstance() => Instance is not null;
+    internal bool HasInstance() => Instance is not null;
 
     internal void Retry()
     {
