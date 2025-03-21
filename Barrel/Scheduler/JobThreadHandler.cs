@@ -10,11 +10,11 @@ internal class JobThreadHandler : IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
-    private readonly JobQueue _runningJobQueue;
+
+    private readonly JobQueue _jobQueue;
+    private readonly ScheduleQueue _scheduleQueue;
 
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
-
-    private readonly ScheduleQueue _scheduleQueue;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -22,27 +22,31 @@ internal class JobThreadHandler : IDisposable
         _cancellationTokenSource = new CancellationTokenSource();
 
         _scheduleQueue = new ScheduleQueue(_configuration.SchedulePollingRate, _cancellationTokenSource);
-        _runningJobQueue = new JobQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
+        _jobQueue = new JobQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
             _cancellationTokenSource);
 
         _runningJobs = new ConcurrentDictionary<int, Task>();
 
         _scheduleQueue.OnJobReady += JobReady;
-        _runningJobQueue.OnJobFired += JobFired;
+        _jobQueue.OnJobFired += JobFired;
 
         //  Background tasks to handle upcoming jobs
         _scheduleQueue.StartProcessingSchedules();
-        _runningJobQueue.StartProcessingJobs();
+        _jobQueue.StartProcessingJobs();
     }
 
-    public bool IsEmpty => _runningJobs.IsEmpty && _runningJobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+    public bool IsEmpty()
+    {
+        Console.WriteLine($"RJ: {_runningJobs.IsEmpty} JQ: {_jobQueue.IsEmpty} SQ: {_scheduleQueue.IsEmpty}");
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+    }
 
     public bool IsDisposed { get; private set; }
 
     public void Dispose()
     {
         _scheduleQueue.OnJobReady -= JobReady;
-        _runningJobQueue.OnJobFired -= JobFired;
+        _jobQueue.OnJobFired -= JobFired;
 
         _cancellationTokenSource.Dispose();
 
@@ -67,7 +71,7 @@ internal class JobThreadHandler : IDisposable
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
-        _runningJobQueue.EnqueueJob(eventArgs.JobData);
+        _jobQueue.EnqueueJob(eventArgs.JobData);
 
         _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
     }
@@ -104,7 +108,7 @@ internal class JobThreadHandler : IDisposable
         }
         finally
         {
-            _runningJobQueue.JobFinished();
+            _jobQueue.JobFinished();
         }
     }
 
@@ -119,7 +123,7 @@ internal class JobThreadHandler : IDisposable
             jobData.Retry();
 
             jobData.JobState = JobState.Enqueued;
-            _runningJobQueue.EnqueueJob(jobData);
+            _jobQueue.EnqueueJob(jobData);
 
             _configuration.Logger.LogDebug(
                 $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");

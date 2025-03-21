@@ -37,13 +37,13 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
-            if (!_queue.TryDequeue(out var jobData))
+            if (!_queue.TryPeek(out var jobData))
             {
-                await Task.Delay(pollingRate);
+                await Task.Delay(pollingRate, cancellationTokenSource.Token);
                 continue;
             }
 
-            await _semaphore.WaitAsync();
+            await _semaphore.WaitAsync(cancellationTokenSource.Token);
 
             jobData.JobState = JobState.Running;
 
@@ -51,6 +51,9 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             if (!jobData.HasInstance()) jobData.InstantiateJob();
 
             OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
+
+            //  Dequeues after firing the job execution
+            _queue.TryDequeue(out _);
         }
     }
 }
