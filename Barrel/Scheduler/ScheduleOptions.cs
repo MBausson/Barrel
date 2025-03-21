@@ -67,5 +67,8 @@ public class ScheduleOptions
         return this;
     }
 
-    public virtual DateTime NextScheduleOn() => DateTime.Now + Delay;
+    public virtual DateTime NextScheduleOn()
+    {
+        return DateTime.Now + Delay;
+    }
 }

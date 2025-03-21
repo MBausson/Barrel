@@ -16,7 +16,8 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        DateTime[] executionDates = [
+        DateTime[] executionDates =
+        [
             DateTime.Now + TimeSpan.FromMilliseconds(1000),
             DateTime.Now + TimeSpan.FromMilliseconds(1500),
             DateTime.Now + TimeSpan.FromMilliseconds(2000)
@@ -30,10 +31,8 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
         await WaitForRecurrentExecutions();
 
         Assert.Equal(3, CalendarJob.ExecutionsCount);
-        Assert.All(CalendarJob.ExecutionDateTimes, (date, i) =>
-        {
-            Assert.Equal(executionDates[i], date, TimeSpan.FromMilliseconds(500));
-        });
+        Assert.All(CalendarJob.ExecutionDateTimes,
+            (date, i) => { Assert.Equal(executionDates[i], date, TimeSpan.FromMilliseconds(500)); });
     }
 
     private async Task WaitForRecurrentExecutions()
@@ -44,10 +43,10 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     private class CalendarJob : BaseJob
     {
         public static readonly TaskCompletionSource<bool> JobsFinishedSource = new();
-        public static IReadOnlyList<DateTime> ExecutionDateTimes => ExecutionDates;
-        public static int ExecutionsCount => ExecutionDateTimes.Count;
 
         private static readonly List<DateTime> ExecutionDates = new();
+        public static IReadOnlyList<DateTime> ExecutionDateTimes => ExecutionDates;
+        public static int ExecutionsCount => ExecutionDateTimes.Count;
 
         protected override Task PerformAsync()
         {

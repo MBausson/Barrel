@@ -10,18 +10,14 @@ public class JobDataFactory : IJobDataFactory
         where TOptions : ScheduleOptions
     {
         if (options is CalendarScheduleOptions calendarScheduleOptions)
-        {
             return (TJobData)(ScheduledJobData)CreateFromCalendar<TJob>(calendarScheduleOptions);
-        }
 
         if (options is RecurrentScheduleOptions recurrentScheduleOptions)
-        {
             return (TJobData)(ScheduledJobData)new RecurrentJobData
             {
                 JobClass = typeof(TJob),
                 Options = recurrentScheduleOptions
             };
-        }
 
         var jobData = new ScheduledJobData
         {
@@ -33,7 +29,8 @@ public class JobDataFactory : IJobDataFactory
 
     //  Factories that receive instances of job cannot handle calendar nor recurrent jobs.
     //  It does not make sense to keep alive a BaseJob instance for multiple job executions.
-    public TJobData Create<TJobData, TOptions>(BaseJob job, TOptions options) where TJobData : ScheduledJobData where TOptions : ScheduleOptions
+    public TJobData Create<TJobData, TOptions>(BaseJob job, TOptions options) where TJobData : ScheduledJobData
+        where TOptions : ScheduleOptions
     {
         if (options is CalendarScheduleOptions or RecurrentScheduleOptions)
             throw new InvalidOperationException("Cannot use instanced jobs for recurrent jobs.");

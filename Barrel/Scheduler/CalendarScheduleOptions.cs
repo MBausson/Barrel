@@ -2,13 +2,13 @@
 
 public class CalendarScheduleOptions : ScheduleOptions
 {
-    public IReadOnlyList<DateTime> ScheduleDateTimes => _scheduleDateTimes.Values.ToArray();
-
     private readonly SortedList<DateTime, DateTime> _scheduleDateTimes = new();
+    public IReadOnlyList<DateTime> ScheduleDateTimes => _scheduleDateTimes.Values.ToArray();
 
     public CalendarScheduleOptions WithDate(DateTime dateTime)
     {
-        if (DateTime.Now > dateTime) throw new ArgumentOutOfRangeException($"Datetime {dateTime} is anterior to the current date");
+        if (DateTime.Now > dateTime)
+            throw new ArgumentOutOfRangeException($"Datetime {dateTime} is anterior to the current date");
 
         _scheduleDateTimes.Add(dateTime, dateTime);
 
@@ -22,5 +22,8 @@ public class CalendarScheduleOptions : ScheduleOptions
         return this;
     }
 
-    public override DateTime NextScheduleOn() => _scheduleDateTimes.First().Value;
+    public override DateTime NextScheduleOn()
+    {
+        return _scheduleDateTimes.First().Value;
+    }
 }

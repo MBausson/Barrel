@@ -40,7 +40,8 @@ public class JobScheduler : IDisposable
 
     public IEnumerable<ScheduledJobData> ScheduleCalendar<T>(CalendarScheduleOptions options) where T : BaseJob, new()
     {
-        if (options.ScheduleDateTimes.Count == 0) throw new InvalidOperationException($"No date have been specified for this schedule.");
+        if (options.ScheduleDateTimes.Count == 0)
+            throw new InvalidOperationException("No date have been specified for this schedule.");
 
         var calendarJobData = new JobDataFactory().Create<CalendarJobData, T, CalendarScheduleOptions>(options);
         foreach (var jobData in calendarJobData.ScheduledJobs) _threadHandler.ScheduleJob(jobData);
@@ -105,9 +106,6 @@ public class JobScheduler : IDisposable
     /// </summary>
     public async Task WaitAllJobs()
     {
-        while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty())
-        {
-            await Task.Delay(50);
-        }
+        while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(50);
     }
 }

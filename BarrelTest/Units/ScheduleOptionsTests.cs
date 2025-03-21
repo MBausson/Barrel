@@ -80,6 +80,7 @@ public class ScheduleOptionsTests
 
         _options.WithDelay(TimeSpan.FromSeconds(secondsDelay));
 
-        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsDelay), _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsDelay), _options.NextScheduleOn(),
+            TimeSpan.FromMilliseconds(999));
     }
 }

@@ -53,7 +53,7 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
 
             //  Dequeues after firing the job execution
-            _queue.TryDequeue(out _);
+            _queue.TryDequeue(out var _);
         }
     }
 }

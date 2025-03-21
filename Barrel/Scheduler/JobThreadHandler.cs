@@ -12,9 +12,9 @@ internal class JobThreadHandler : IDisposable
     private readonly JobSchedulerConfiguration _configuration;
 
     private readonly JobQueue _jobQueue;
-    private readonly ScheduleQueue _scheduleQueue;
 
     private readonly ConcurrentDictionary<int, Task> _runningJobs;
+    private readonly ScheduleQueue _scheduleQueue;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -35,12 +35,6 @@ internal class JobThreadHandler : IDisposable
         _jobQueue.StartProcessingJobs();
     }
 
-    public bool IsEmpty()
-    {
-        Console.WriteLine($"RJ: {_runningJobs.IsEmpty} JQ: {_jobQueue.IsEmpty} SQ: {_scheduleQueue.IsEmpty}");
-        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
-    }
-
     public bool IsDisposed { get; private set; }
 
     public void Dispose()
@@ -52,6 +46,11 @@ internal class JobThreadHandler : IDisposable
 
         IsDisposed = true;
         _configuration.Logger.LogDebug($"{nameof(JobThreadHandler)} disposed");
+    }
+
+    public bool IsEmpty()
+    {
+        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
     }
 
     public void ScheduleJob(ScheduledJobData jobData)
@@ -66,7 +65,8 @@ internal class JobThreadHandler : IDisposable
         jobData.EnqueuedOn = jobData.NextScheduleOn();
         _scheduleQueue.ScheduleJob(jobData);
 
-        _configuration.Logger.LogInformation($"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
+        _configuration.Logger.LogInformation(
+            $"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
     }
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
@@ -128,7 +128,10 @@ internal class JobThreadHandler : IDisposable
             _configuration.Logger.LogDebug(
                 $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
         }
-        else RescheduleIfRecurrent(jobData);
+        else
+        {
+            RescheduleIfRecurrent(jobData);
+        }
 
         //  For recurrent failing jobs, we re-schedule when the job cannot be retried
     }
@@ -148,7 +151,8 @@ internal class JobThreadHandler : IDisposable
 
             _scheduleQueue.ScheduleJob(recurrentJobData);
 
-            _configuration.Logger.LogInformation($"Rescheduling reccurent job {jobData.JobId} to run on {recurrentJobData.EnqueuedOn}");
+            _configuration.Logger.LogInformation(
+                $"Rescheduling reccurent job {jobData.JobId} to run on {recurrentJobData.EnqueuedOn}");
         }
     }
 }

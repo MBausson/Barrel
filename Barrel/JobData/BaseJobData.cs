@@ -40,7 +40,10 @@ public abstract class BaseJobData
         return Instance;
     }
 
-    internal bool HasInstance() => Instance is not null;
+    internal bool HasInstance()
+    {
+        return Instance is not null;
+    }
 
     internal void Retry()
     {

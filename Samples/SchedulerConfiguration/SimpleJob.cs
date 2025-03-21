@@ -19,9 +19,9 @@ public class SimpleJob : BaseJob
 
         Console.WriteLine($"Job #{jobName} - Starting");
 
-        for (int k = 0; k < 10; k++)
+        for (var k = 0; k < 10; k++)
         {
-            Console.WriteLine($"Job #{jobName} -- {k/0.1f} %");
+            Console.WriteLine($"Job #{jobName} -- {k / 0.1f} %");
             await Task.Delay(500);
         }
 

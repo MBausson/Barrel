@@ -11,7 +11,7 @@ public class CalendarScheduleOptionsTest
 
         _options.WithDate(date1);
 
-        Assert.Equivalent(new []{ date1 }, _options.ScheduleDateTimes);
+        Assert.Equivalent(new[] { date1 }, _options.ScheduleDateTimes);
         Assert.Equal(date1, _options.NextScheduleOn());
     }
 
@@ -32,7 +32,7 @@ public class CalendarScheduleOptionsTest
 
         _options.WithDates(date1, date2, date3);
 
-        Assert.Equivalent(new []{ date1, date2, date3 }, _options.ScheduleDateTimes);
+        Assert.Equivalent(new[] { date1, date2, date3 }, _options.ScheduleDateTimes);
     }
 
     [Fact]
