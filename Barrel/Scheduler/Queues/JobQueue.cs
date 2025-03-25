@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using Barrel.JobData;
+﻿using Barrel.JobData;
 
 namespace Barrel.Scheduler.Queues;
 
@@ -41,13 +40,11 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
-            if (IsEmpty)
+            if (!TryGetJob(out var jobData))
             {
                 await Task.Delay(pollingRate, cancellationTokenSource.Token);
                 continue;
             }
-
-            var jobData = _queue.First();
 
             await _semaphore.WaitAsync(cancellationTokenSource.Token);
 
@@ -62,4 +59,32 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             _queue.Remove(jobData);
         }
     }
+
+    private bool TryGetJob(out BaseJobData job)
+    {
+        if (IsEmpty)
+        {
+            job = default!;
+            return false;
+        }
+
+        job = _queue.First();
+
+        for (var i = 1; i < _queue.Count; i++)
+        {
+            //  No need to search for jobs with higher priority if we're already on a High priority
+            if (job.JobPriority == JobPriority.High) break;
+
+            var jobData = _queue[i];
+
+            if (IsJobMorePriority(jobData, job))
+            {
+                job = jobData;
+            }
+        }
+
+        return true;
+    }
+
+    private bool IsJobMorePriority(BaseJobData a, BaseJobData b) => a.JobPriority > b.JobPriority;
 }
