@@ -10,9 +10,9 @@ internal class JobFiredEventArgs(BaseJobData jobData) : EventArgs
 
 internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationTokenSource cancellationTokenSource)
 {
-    private readonly ConcurrentQueue<BaseJobData> _queue = new();
+    private readonly List<BaseJobData> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(maxConcurrentJobs);
-    public bool IsEmpty => _queue.IsEmpty;
+    public bool IsEmpty => _queue.Count == 0;
     public event EventHandler<JobFiredEventArgs> OnJobFired = null!;
 
     public void StartProcessingJobs()
@@ -22,7 +22,11 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
 
     public void EnqueueJob(BaseJobData jobData)
     {
-        _queue.Enqueue(jobData);
+        lock (_queue)
+        {
+            _queue.Add(jobData);
+        }
+
         jobData.JobState = JobState.Enqueued;
     }
 
@@ -37,11 +41,13 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
-            if (!_queue.TryPeek(out var jobData))
+            if (IsEmpty)
             {
                 await Task.Delay(pollingRate, cancellationTokenSource.Token);
                 continue;
             }
+
+            var jobData = _queue.First();
 
             await _semaphore.WaitAsync(cancellationTokenSource.Token);
 
@@ -53,7 +59,7 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
 
             //  Dequeues after firing the job execution
-            _queue.TryDequeue(out var _);
+            _queue.Remove(jobData);
         }
     }
 }
