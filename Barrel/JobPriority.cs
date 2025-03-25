@@ -6,15 +6,9 @@
 public enum JobPriority
 {
     /// <summary>
-    ///     Jobs with this priority will pause other running jobs if no thread is available.
-    ///     They will also be ran before any non-high jobs.
+    ///     Will default to Medium priority if no priority is given on a job instance.
     /// </summary>
-    High,
-
-    /// <summary>
-    ///     Jobs with this priority will run before any <c>Low</c> enqueued job.
-    /// </summary>
-    Medium,
+    Default,
 
     /// <summary>
     ///     Jobs with this priority will run if no other jobs with a higher priority has been enqueued.
@@ -22,7 +16,12 @@ public enum JobPriority
     Low,
 
     /// <summary>
-    ///     Will default to Medium priority if no priority is given on a job instance.
+    ///     Jobs with this priority will run before any <c>Low</c> enqueued job.
     /// </summary>
-    Default
+    Medium,
+
+    /// <summary>
+    ///     Jobs with this priority will run before any non-high job.
+    /// </summary>
+    High,
 }
