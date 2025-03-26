@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Barrel\Barrel.csproj" />
+      <ProjectReference Include="$(SolutionDir)\Barrel\Barrel.csproj" />
     </ItemGroup>
 
 </Project>

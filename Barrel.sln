@@ -14,7 +14,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RecurrentJobs", "Samples\Re
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SchedulerConfiguration", "Samples\SchedulerConfiguration\SchedulerConfiguration.csproj", "{944B7A95-0DFA-4B2E-8911-DC338420D3CF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrioritizedJobs", "PrioritizedJobs\PrioritizedJobs.csproj", "{0293001D-F6A7-429A-97CA-5BE63F3AA0B0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PrioritizedJobs", "Samples\PrioritizedJobs\PrioritizedJobs.csproj", "{0293001D-F6A7-429A-97CA-5BE63F3AA0B0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
