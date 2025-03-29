@@ -24,6 +24,10 @@ scheduler.Schedule<SimpleJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1))
 //	Schedules a job to be ran in 2 seconds from now
 scheduler.Schedule<SimpleJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(2)));
 
+//  Schedules a High priority job. Will run before any other job if the concurrent job limit is reached.
+//  Default is Medium.
+scheduler.Schedule<SimpleJob>(ScheduleOptions.FromPriority(JobPriority.High));
+
 //	Blocking call that waits for all jobs to be complete
 await scheduler.WaitAllJobs();
 ```
@@ -33,7 +37,7 @@ await scheduler.WaitAllJobs();
 Job schedulers use two separate threads to handle incoming and running jobs.
 
 - The first one processes a "Schedule" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a second queue.
-- The second thread is responsible for handling the running jobs queue. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs. This property can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
+- The second thread is responsible for handling the running jobs queue. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs. In this queue, jobs with a high Priority are run first. The rate at which jobs are processed in this queue can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
 - Jobs are ran within a dedicated `System.Threading.Tasks.Task` object
 
 ## Testing
@@ -44,6 +48,5 @@ In order to be sure that a test actually fails, please run it several times.
 
 ## Future features
 
-- Jobs should have a priority, which impacts the behaviour of the JobScheduler's queue. For example, jobs with a `high` priority should be able to pause less prioritized jobs in order to run as soon as possible. Jobs with a `medium` priority will run before any `low` enqueued jobs.
 - A "persistence extension". This extension will make the JobScheduler use a database to keep track of scheduled jobs, as well as job executions, failure, etc.
 - A "dependency injection extension", allowing jobs to use the dependency injection pattern. Such jobs will define the dependencies they use on their constructor.
