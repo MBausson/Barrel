@@ -22,4 +22,4 @@ await scheduler.WaitAllJobs();
 //  The first job will run normally, but the next job will be third one, since its priority is higher than the 2nd job
 
 //  Priority matters only when the maximum amount of concurrent jobs is reached. If we set this option to a higher
-//      number, the 2nd job will run before the 3rd one.
+//      number, the 2nd scheduled job will run before the 3rd scheduled one.
