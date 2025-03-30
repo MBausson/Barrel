@@ -5,7 +5,7 @@ using PrioritizedJobs;
 
 using var scheduler = new JobScheduler(new JobSchedulerConfigurationBuilder().WithMaxConcurrentJobs(1));
 
-scheduler.Schedule(new SimpleJob("Medium"));    // 1st scheduled job -- 1st executed
+scheduler.Schedule(new SimpleJob("Medium")); // 1st scheduled job -- 1st executed
 
 //  We need this delay to demonstrate how the priority works
 //  Without this, the High job gets executed first
@@ -14,8 +14,9 @@ scheduler.Schedule(new SimpleJob("Medium"));    // 1st scheduled job -- 1st exec
 //  Messing around with QueuePollingRate might fix this
 await Task.Delay(200);
 
-scheduler.Schedule(new SimpleJob("Medium"));    // 2nd scheduled job -- 3rd executed
-scheduler.Schedule(new SimpleJob("High"), ScheduleOptions.FromPriority(JobPriority.High)); // 3rd scheduled job -- 2nd executed
+scheduler.Schedule(new SimpleJob("Medium")); // 2nd scheduled job -- 3rd executed
+scheduler.Schedule(new SimpleJob("High"),
+    ScheduleOptions.FromPriority(JobPriority.High)); // 3rd scheduled job -- 2nd executed
 
 await scheduler.WaitAllJobs();
 //  We have specified that our scheduler should, at most, run one job concurrently.

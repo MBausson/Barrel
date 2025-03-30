@@ -75,16 +75,11 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
             //  No need to search for jobs with higher priority if we're already on a High priority
             if (job.JobPriority == JobPriority.High) break;
 
-            var jobData = _queue[i];
+            var nextJob = _queue[i];
 
-            if (IsJobMorePriority(jobData, job))
-            {
-                job = jobData;
-            }
+            if (nextJob.JobPriority > job.JobPriority) job = nextJob;
         }
 
         return true;
     }
-
-    private bool IsJobMorePriority(BaseJobData a, BaseJobData b) => a.JobPriority > b.JobPriority;
 }

@@ -23,5 +23,5 @@ public enum JobPriority
     /// <summary>
     ///     Jobs with this priority will run before any non-high job.
     /// </summary>
-    High,
+    High
 }
