@@ -32,20 +32,9 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
-            KeyValuePair<DateTime, BaseJobData>[] jobsToEnqueue;
+            var jobsToEnqueue = FindJobsToEnqueue();
 
-            lock (_queue)
-            {
-                //  Improve this. Since this collection is sorted, we know dates that precede a future dates are also futures
-                //  Thus we can stop iterating after a DateTime comparison fails
-                //  We could also cache the result of DateTime.Now
-                //  TODO
-                jobsToEnqueue = _queue
-                    .Where(kv => kv.Key <= DateTime.Now)
-                    .ToArray();
-            }
-
-            if (jobsToEnqueue.Length == 0)
+            if (jobsToEnqueue.Count == 0)
             {
                 await Task.Delay(pollingRate);
                 continue;
@@ -61,5 +50,25 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
                 }
             }
         }
+    }
+
+    private List<KeyValuePair<DateTime, BaseJobData>> FindJobsToEnqueue()
+    {
+        List<KeyValuePair<DateTime, BaseJobData>> jobsToEnqueue = [];
+
+        lock (_queue)
+        {
+            var dateNow = DateTime.Now;
+
+            foreach (var (scheduleDateTime, jobData) in _queue)
+            {
+                //  The _queue list is sorted, thus there is no need to look further if this check fails
+                if (scheduleDateTime > dateNow) break;
+
+                jobsToEnqueue.Add(new KeyValuePair<DateTime, BaseJobData>(scheduleDateTime, jobData));
+            }
+        }
+
+        return jobsToEnqueue;
     }
 }
