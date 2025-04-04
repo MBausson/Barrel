@@ -20,6 +20,8 @@ public class JobSchedulerConfigurationBuilder
     /// </summary>
     public ILogger Logger { get; private set; } = DefaultLoggerFactory(LogLevel.Information).CreateLogger("Barrel");
 
+    public IServiceProvider? ServiceProvider { get; private set; } = null;
+
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)
     {
@@ -84,6 +86,20 @@ public class JobSchedulerConfigurationBuilder
         return this;
     }
 
+    public JobSchedulerConfigurationBuilder WithDependencyInjection(IServiceProvider serviceProvider)
+    {
+        ServiceProvider = serviceProvider;
+
+        return this;
+    }
+
+    public JobSchedulerConfigurationBuilder WithoutDependencyInjection()
+    {
+        ServiceProvider = null;
+
+        return this;
+    }
+
     public JobSchedulerConfiguration Build()
     {
         return new JobSchedulerConfiguration
@@ -91,6 +107,7 @@ public class JobSchedulerConfigurationBuilder
             MaxConcurrentJobs = MaxConcurrentJobs,
             QueuePollingRate = QueuePollingRate,
             SchedulePollingRate = SchedulePollingRate,
+            ServiceProvider = ServiceProvider,
             Logger = Logger
         };
     }

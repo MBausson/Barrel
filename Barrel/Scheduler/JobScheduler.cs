@@ -93,6 +93,18 @@ public class JobScheduler : IDisposable
         return ScheduleFromJobData(jobData);
     }
 
+    public ScheduledJobData ScheduleDependencyInjection<T>(ScheduleOptions options) where T : BaseJob
+    {
+        if (_configuration.ServiceProvider is null)
+            throw new InvalidOperationException($"Scheduler has no service provider set.");
+
+        T? job = _configuration.ServiceProvider.GetService(typeof(T)) as T;
+
+        if (job is null) throw new NullReferenceException($"Could not retrieve service {nameof(T)}");
+
+        return Schedule(job, options);
+    }
+
     private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
     {
         _threadHandler.ScheduleJob(jobData);
