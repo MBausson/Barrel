@@ -50,9 +50,6 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
 
             jobData.JobState = JobState.Running;
 
-            //  If the job hasn't been instantiated, do it now
-            if (!jobData.HasInstance()) jobData.InstantiateJob();
-
             OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
 
             //  Dequeues after firing the job execution

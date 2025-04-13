@@ -54,9 +54,9 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     /// <typeparam name="T">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
-    public ScheduledJobData Schedule<T>() where T : BaseJob, new()
+    public ScheduledJobData Schedule<T>() where T : BaseJob
     {
-        return Schedule(new T(), ScheduleOptions.Default);
+        return Schedule<T>(ScheduleOptions.Default);
     }
 
     /// <summary>
@@ -86,24 +86,24 @@ public class JobScheduler : IDisposable
     /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     /// <typeparam name="T">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
-    public ScheduledJobData Schedule<T>(ScheduleOptions options) where T : BaseJob, new()
+    public ScheduledJobData Schedule<T>(ScheduleOptions options) where T : BaseJob
     {
         var jobData = new JobDataFactory().Create<ScheduledJobData, T, ScheduleOptions>(options);
 
         return ScheduleFromJobData(jobData);
     }
 
-    public ScheduledJobData ScheduleDependencyInjection<T>(ScheduleOptions options) where T : BaseJob
-    {
-        if (_configuration.ServiceProvider is null)
-            throw new InvalidOperationException($"Scheduler has no service provider set.");
-
-        T? job = _configuration.ServiceProvider.GetService(typeof(T)) as T;
-
-        if (job is null) throw new NullReferenceException($"Could not retrieve service {nameof(T)}");
-
-        return Schedule(job, options);
-    }
+    // public ScheduledJobData ScheduleDependencyInjection<T>(ScheduleOptions options) where T : BaseJob
+    // {
+    //     if (_configuration.ServiceProvider is null)
+    //         throw new InvalidOperationException($"Scheduler has no service provider set.");
+    //
+    //     T? job = _configuration.ServiceProvider.GetService(typeof(T)) as T;
+    //
+    //     if (job is null) throw new NullReferenceException($"Could not retrieve service {nameof(T)}");
+    //
+    //     return Schedule(job, options);
+    // }
 
     private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
     {

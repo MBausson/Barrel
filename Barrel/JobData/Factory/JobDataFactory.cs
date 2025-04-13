@@ -2,11 +2,12 @@
 
 namespace Barrel.JobData.Factory;
 
+//  TODO: To refactor
 public class JobDataFactory : IJobDataFactory
 {
     public TJobData Create<TJobData, TJob, TOptions>(TOptions options)
         where TJobData : ScheduledJobData
-        where TJob : BaseJob, new()
+        where TJob : BaseJob
         where TOptions : ScheduleOptions
     {
         if (options is CalendarScheduleOptions calendarScheduleOptions)
@@ -37,13 +38,14 @@ public class JobDataFactory : IJobDataFactory
 
         var jobData = new ScheduledJobData
         {
+            JobClass = job.GetType(),
             Instance = job
         };
 
         return (TJobData)SetDataToJobData(jobData, options);
     }
 
-    private CalendarJobData CreateFromCalendar<TJob>(CalendarScheduleOptions options) where TJob : BaseJob, new()
+    private CalendarJobData CreateFromCalendar<TJob>(CalendarScheduleOptions options) where TJob : BaseJob
     {
         var jobsData = new List<ScheduledJobData>();
 

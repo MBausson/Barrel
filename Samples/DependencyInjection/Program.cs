@@ -12,6 +12,6 @@ IServiceProvider serviceProvider = services.BuildServiceProvider();
 
 using var scheduler = new JobScheduler(new JobSchedulerConfigurationBuilder().WithDependencyInjection(serviceProvider));
 
-scheduler.ScheduleDependencyInjection<SimpleJob>(new());
+scheduler.Schedule<SimpleJob>();
 
 await scheduler.WaitAllJobs();

@@ -3,6 +3,7 @@ using Barrel.Configuration;
 using Barrel.JobData;
 using Barrel.Scheduler.Queues;
 using Microsoft.Extensions.Logging;
+using BindingFlags = System.Reflection.BindingFlags;
 
 namespace Barrel.Scheduler;
 
@@ -78,7 +79,7 @@ internal class JobThreadHandler : IDisposable
 
     private void JobFired(object? _, JobFiredEventArgs e)
     {
-        var jobTask = RunJob(e.BaseJobData.Instance!, e.BaseJobData);
+        var jobTask = RunJob(e.BaseJobData);
 
         _runningJobs[jobTask.Id] = jobTask;
 
@@ -86,11 +87,25 @@ internal class JobThreadHandler : IDisposable
         jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
     }
 
-    private async Task RunJob(BaseJob jobInstance, BaseJobData jobData)
+    private async Task RunJob(BaseJobData jobData)
     {
+        //  If the job hasn't been instantiated, do it now
+        if (!jobData.HasInstance())
+        {
+            var success = InstantiateJob(jobData);
+
+            if (!success)
+            {
+                _configuration.Logger.LogCritical($"Could not run job {jobData.JobId} : could not instantiate BaseJob.");
+                return;
+            }
+        }
+
         try
         {
             _configuration.Logger.LogDebug($"Launching job {jobData.JobId} ...");
+
+            var jobInstance = jobData.Instance!;
 
             //  Job execution
             await jobInstance.BeforePerformAsync();
@@ -152,7 +167,39 @@ internal class JobThreadHandler : IDisposable
             _scheduleQueue.ScheduleJob(recurrentJobData);
 
             _configuration.Logger.LogInformation(
-                $"Rescheduling reccurent job {jobData.JobId} to run on {recurrentJobData.EnqueuedOn}");
+                $"Rescheduling recurrent job {jobData.JobId} to run on {recurrentJobData.EnqueuedOn}");
         }
+    }
+
+    private bool InstantiateJob(BaseJobData jobData)
+    {
+        //  First, try to use DI
+        if (_configuration.ServiceProvider is not null)
+        {
+            var jobService = _configuration.ServiceProvider.GetService(jobData.JobClass);
+
+            if (jobService is not null)
+            {
+                jobData.Instance = (BaseJob)jobService;
+                return true;
+            }
+
+            _configuration.Logger.LogDebug($"Could not find DI service for {jobData.JobClass} (job {jobData.JobId})");
+        }
+
+        //  Try for a parameter-less instantiation
+        if (!HasParameterlessConstructor(jobData.JobClass))
+        {
+            _configuration.Logger.LogError($"Could not instantiate {jobData.JobClass} (job {jobData.JobId}). Job class does not provide a parameter-less constructor");
+            return false;
+        }
+
+        jobData.Instance = (BaseJob)Activator.CreateInstance(jobData.JobClass)!;
+        return true;
+    }
+
+    private bool HasParameterlessConstructor(Type type)
+    {
+        return type.GetConstructor(Type.EmptyTypes) is not null;
     }
 }
