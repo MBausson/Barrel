@@ -33,6 +33,11 @@ public class JobScheduler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
+    /// <summary>
+    /// Schedule a recurrent job to be executed every X delay
+    /// </summary>
+    /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
+    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     public RecurrentJobData ScheduleRecurrent<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
     {
         EnsureJobInstantiation<TJob>();
@@ -43,6 +48,11 @@ public class JobScheduler : IDisposable
         return jobData;
     }
 
+    /// <summary>
+    /// Schedule a recurrent job to be on a precise date
+    /// </summary>
+    /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
+    /// <typeparam name="TJob">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
     public IEnumerable<ScheduledJobData> ScheduleCalendar<TJob>(CalendarScheduleOptions options) where TJob : BaseJob, new()
     {
         if (options.ScheduleDateTimes.Count == 0)
@@ -59,7 +69,6 @@ public class JobScheduler : IDisposable
     /// <summary>
     ///     Schedules a job to run with no delay.
     /// </summary>
-    /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     /// <typeparam name="TJob">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
     public ScheduledJobData Schedule<TJob>() where TJob : BaseJob
     {
@@ -92,20 +101,12 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
-    /// <remarks>This method does not require a job instance, but requires a parameter-less job constructor</remarks>
     public ScheduledJobData Schedule<TJob>(ScheduleOptions options) where TJob : BaseJob
     {
         EnsureJobInstantiation<TJob>();
         var jobData = new JobDataFactory().Create<ScheduledJobData, TJob, ScheduleOptions>(options);
 
         return ScheduleFromJobData(jobData);
-    }
-
-    private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
-    {
-        _threadHandler.ScheduleJob(jobData);
-
-        return jobData;
     }
 
     /// <summary>
@@ -115,6 +116,13 @@ public class JobScheduler : IDisposable
     public async Task WaitAllJobs()
     {
         while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(50);
+    }
+
+    private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
+    {
+        _threadHandler.ScheduleJob(jobData);
+
+        return jobData;
     }
 
     /// <summary>

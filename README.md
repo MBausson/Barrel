@@ -32,6 +32,18 @@ scheduler.Schedule<SimpleJob>(ScheduleOptions.FromPriority(JobPriority.High));
 await scheduler.WaitAllJobs();
 ```
 
+## Features
+
+Here's a non-exhaustive list of the features present in Barrel:
+
+- Lazy job instantiation : a job can be instantiated just before it actually gets executed
+- Job instantiation via dependency injection
+- Job instantiation via an argument-less constructor (constructor with 0 parameters, or with parameters having default values)
+- Prioritized job queue (`high`, `medium`, `low`)
+- Job retry on fail, with a limit of retry attempts
+- Recurrent jobs that are executed every X delay
+- Calendar jobs that are executed on a very particular date
+
 ### How it's done
 
 Job schedulers use two separate threads to handle incoming and running jobs.
@@ -49,4 +61,3 @@ In order to be sure that a test actually fails, please run it several times.
 ## Future features
 
 - A "persistence extension". This extension will make the JobScheduler use a database to keep track of scheduled jobs, as well as job executions, failure, etc.
-- A "dependency injection extension", allowing jobs to use the dependency injection pattern. Such jobs will define the dependencies they use on their constructor.
