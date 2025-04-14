@@ -1,4 +1,5 @@
-﻿using Barrel.Scheduler;
+﻿using Barrel.Exceptions;
+using Barrel.Scheduler;
 
 namespace Barrel.JobData.Factory;
 
@@ -6,25 +7,19 @@ public class JobDataFactory : IJobDataFactory
 {
     public TJobData Create<TJobData, TJob, TOptions>(TOptions options)
         where TJobData : ScheduledJobData
-        where TJob : BaseJob, new()
+        where TJob : BaseJob
         where TOptions : ScheduleOptions
     {
-        if (options is CalendarScheduleOptions calendarScheduleOptions)
-            return (TJobData)(ScheduledJobData)CreateFromCalendar<TJob>(calendarScheduleOptions);
-
-        if (options is RecurrentScheduleOptions recurrentScheduleOptions)
-            return (TJobData)(ScheduledJobData)new RecurrentJobData
-            {
-                JobClass = typeof(TJob),
-                Options = recurrentScheduleOptions
-            };
-
-        var jobData = new ScheduledJobData
+        return options switch
         {
-            JobClass = typeof(TJob)
-        };
+            CalendarScheduleOptions calendarOptions =>
+                (TJobData)(ScheduledJobData)CreateCalendarJobData<TJob>(calendarOptions),
 
-        return (TJobData)SetDataToJobData(jobData, options);
+            RecurrentScheduleOptions recurrentOptions =>
+                (TJobData)(ScheduledJobData)CreateRecurrentJobData<TJob>(recurrentOptions),
+
+            _ => (TJobData)CreateScheduledJobData(typeof(TJob), options)
+        };
     }
 
     //  Factories that receive instances of job cannot handle calendar nor recurrent jobs.
@@ -33,37 +28,50 @@ public class JobDataFactory : IJobDataFactory
         where TOptions : ScheduleOptions
     {
         if (options is CalendarScheduleOptions or RecurrentScheduleOptions)
-            throw new InvalidOperationException("Cannot use instanced jobs for recurrent jobs.");
+            throw new ImpossibleJobInstantiation<BaseJob>();
 
         var jobData = new ScheduledJobData
         {
+            JobClass = job.GetType(),
             Instance = job
         };
 
         return (TJobData)SetDataToJobData(jobData, options);
     }
 
-    private CalendarJobData CreateFromCalendar<TJob>(CalendarScheduleOptions options) where TJob : BaseJob, new()
+    private CalendarJobData CreateCalendarJobData<TJob>(CalendarScheduleOptions options) where TJob : BaseJob
     {
-        var jobsData = new List<ScheduledJobData>();
-
-        foreach (var scheduleDateTime in options.ScheduleDateTimes)
+        var scheduledJobs = options.ScheduleDateTimes.Select(dateTime => new ScheduledJobData
         {
-            var data = new ScheduledJobData
-            {
-                JobClass = typeof(TJob)
-            };
-
-            data.JobPriority = options.Priority;
-            data.EnqueuedOn = scheduleDateTime;
-            data.MaxRetryAttempts = options.MaxRetries;
-
-            jobsData.Add(data);
-        }
+            JobClass = typeof(TJob),
+            EnqueuedOn = dateTime,
+            JobPriority = options.Priority,
+            MaxRetryAttempts = options.MaxRetries
+        }).ToArray();
 
         return new CalendarJobData
         {
-            ScheduledJobs = jobsData.ToArray(),
+            ScheduledJobs = scheduledJobs,
+            JobPriority = options.Priority,
+            MaxRetryAttempts = options.MaxRetries
+        };
+    }
+
+    private RecurrentJobData CreateRecurrentJobData<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob
+    {
+        return new RecurrentJobData
+        {
+            JobClass = typeof(TJob),
+            Options = options
+        };
+    }
+
+    private ScheduledJobData CreateScheduledJobData(Type jobType, ScheduleOptions options)
+    {
+        return new ScheduledJobData
+        {
+            JobClass = jobType,
+            EnqueuedOn = options.NextScheduleOn(),
             JobPriority = options.Priority,
             MaxRetryAttempts = options.MaxRetries
         };

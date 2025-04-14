@@ -24,21 +24,11 @@ public abstract class BaseJobData
 
     public bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
 
-    public Type? JobClass { get; internal set; }
+    public Type JobClass { get; internal set; }
 
     public BaseJob? Instance { get; internal set; }
 
     public abstract DateTime NextScheduleOn();
-
-    //  If not already done, instantiate the job's class, stores it and returns it
-    internal BaseJob InstantiateJob()
-    {
-        if (JobClass is null || Instance is not null) return Instance!;
-
-        Instance = (BaseJob)Activator.CreateInstance(JobClass)!;
-
-        return Instance;
-    }
 
     internal bool HasInstance()
     {

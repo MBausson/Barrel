@@ -1,4 +1,4 @@
-﻿namespace BarrelTest.Units;
+﻿namespace BarrelTest.Units.SchedulerOptions;
 
 public class ScheduleOptionsTests
 {

@@ -10,7 +10,7 @@ public class RetryTests
         {
             Scheduler = new JobScheduler();
 
-            var job = new RetryableJob();
+            var job = new SuccessfulJob();
             var jobData = Scheduler.Schedule(job, new ScheduleOptions().WithMaxRetries(3));
 
             await WaitForJobToEnd(job);
@@ -24,26 +24,14 @@ public class RetryTests
         public async Task Failure_MaxRetryTest()
         {
             Scheduler = new JobScheduler();
-
-            var job = new RetryableJob(true);
+            
+            var job = new FailedJob();
             var jobData = Scheduler.Schedule(job, new ScheduleOptions().WithMaxRetries(3));
 
             await WaitForJobToEnd(job);
 
-            Assert.Equal(JobState.Failed, jobData.JobState);
             Assert.Equal(3, jobData.RetryAttempts);
-        }
-
-        private class RetryableJob(bool shouldFail = false) : TestJob
-        {
-            private readonly bool _shouldFail = shouldFail;
-
-            protected override async Task PerformAsync()
-            {
-                if (_shouldFail) throw new Exception("An exception");
-
-                await base.PerformAsync();
-            }
+            Assert.Equal(JobState.Failed, jobData.JobState);
         }
     }
 }

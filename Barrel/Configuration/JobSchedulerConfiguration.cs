@@ -23,6 +23,8 @@ public struct JobSchedulerConfiguration
     /// </summary>
     public int SchedulePollingRate { get; init; }
 
+    public IServiceProvider? ServiceProvider { get; init; }
+
     /// <summary>
     ///     Logger used by the scheduler instance.
     ///     <seealso cref="ILogger" />
