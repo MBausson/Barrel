@@ -93,7 +93,7 @@ public class JobScheduler : IDisposable
         return ScheduleFromJobData(jobData);
     }
 
-    // public ScheduledJobData ScheduleDependencyInjection<T>(ScheduleOptions options) where T : BaseJob
+    // public ScheduledJobData ScheduleDependencyInjection<T>(SchedulerOptions options) where T : BaseJob
     // {
     //     if (_configuration.ServiceProvider is null)
     //         throw new InvalidOperationException($"Scheduler has no service provider set.");

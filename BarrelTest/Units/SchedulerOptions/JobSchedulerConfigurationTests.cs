@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Logging.Abstractions;
 
-namespace BarrelTest.Units;
+namespace BarrelTest.Units.SchedulerOptions;
 
 public class JobSchedulerConfigurationTests
 {

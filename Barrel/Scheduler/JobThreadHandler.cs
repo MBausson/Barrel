@@ -1,7 +1,9 @@
 ﻿using System.Collections.Concurrent;
+using System.Reflection;
 using Barrel.Configuration;
 using Barrel.JobData;
 using Barrel.Scheduler.Queues;
+using Barrel.Utils;
 using Microsoft.Extensions.Logging;
 using BindingFlags = System.Reflection.BindingFlags;
 
@@ -54,6 +56,7 @@ internal class JobThreadHandler : IDisposable
         return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
     }
 
+    //  TODO: Check if job can be instantiated via DI or argument-less constructor
     public void ScheduleJob(ScheduledJobData jobData)
     {
         _scheduleQueue.ScheduleJob(jobData);
@@ -61,6 +64,7 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to run on {jobData.EnqueuedOn}");
     }
 
+    //  TODO: Check if job can be instantiated via DI or argument-less constructor
     public void ScheduleRecurrentJob(RecurrentJobData jobData)
     {
         jobData.EnqueuedOn = jobData.NextScheduleOn();
@@ -188,7 +192,7 @@ internal class JobThreadHandler : IDisposable
         }
 
         //  Try for a parameter-less instantiation
-        if (!HasParameterlessConstructor(jobData.JobClass))
+        if (!ArgumentLessConstructorChecker.HasArgumentLessConstructor(jobData.JobClass))
         {
             _configuration.Logger.LogError($"Could not instantiate {jobData.JobClass} (job {jobData.JobId}). Job class does not provide a parameter-less constructor");
             return false;
@@ -196,10 +200,5 @@ internal class JobThreadHandler : IDisposable
 
         jobData.Instance = (BaseJob)Activator.CreateInstance(jobData.JobClass)!;
         return true;
-    }
-
-    private bool HasParameterlessConstructor(Type type)
-    {
-        return type.GetConstructor(Type.EmptyTypes) is not null;
     }
 }

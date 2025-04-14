@@ -23,6 +23,7 @@ public class SimpleJob(ISimpleTask simpleTask) : BaseJob
         for (var k = 0; k < 10; k++)
         {
             Console.WriteLine($"Job #{jobName} -- {k / 0.1f} %");
+            //  Dependency's work
             await simpleTask.DoWorkAsync();
         }
 
