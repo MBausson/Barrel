@@ -1,6 +1,5 @@
 ﻿namespace Barrel.Utils;
 
-
 public static class ArgumentLessConstructorChecker
 {
     public static bool HasArgumentLessConstructor(Type type)

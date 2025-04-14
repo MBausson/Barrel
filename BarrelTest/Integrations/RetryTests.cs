@@ -24,7 +24,7 @@ public class RetryTests
         public async Task Failure_MaxRetryTest()
         {
             Scheduler = new JobScheduler();
-            
+
             var job = new FailedJob();
             var jobData = Scheduler.Schedule(job, new ScheduleOptions().WithMaxRetries(3));
 

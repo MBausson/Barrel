@@ -7,7 +7,7 @@ namespace BarrelTest.Units.Utils;
 [SuppressMessage("ReSharper", "UnusedMember.Local")]
 [SuppressMessage("ReSharper", "EmptyConstructor")]
 [SuppressMessage("ReSharper", "UnusedParameter.Local")]
-public class ArgumentLessConstructorCheckTest
+public class ArgumentLessConstructorCheckerTest
 {
     [Fact]
     public void PrivateConstructor_ReturnsFalse()
@@ -67,17 +67,23 @@ public class ArgumentLessConstructorCheckTest
 
     private class PrivateConstructorClass
     {
-        private PrivateConstructorClass(){}
+        private PrivateConstructorClass()
+        {
+        }
     }
 
     private class ProtectedConstructorClass
     {
-        protected ProtectedConstructorClass(){}
+        protected ProtectedConstructorClass()
+        {
+        }
     }
 
     private class InternalConstructorClass
     {
-        internal InternalConstructorClass(){}
+        internal InternalConstructorClass()
+        {
+        }
     }
 
     private class ParametersClass(int _);
@@ -88,8 +94,16 @@ public class ArgumentLessConstructorCheckTest
 
     private class MultipleConstructorsClass
     {
-        private MultipleConstructorsClass(bool _, bool __){}
-        internal MultipleConstructorsClass(int _){}
-        public MultipleConstructorsClass(){}
+        private MultipleConstructorsClass(bool _, bool __)
+        {
+        }
+
+        internal MultipleConstructorsClass(int _)
+        {
+        }
+
+        public MultipleConstructorsClass()
+        {
+        }
     }
 }

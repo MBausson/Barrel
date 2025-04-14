@@ -20,7 +20,7 @@ public class JobSchedulerConfigurationBuilder
     /// </summary>
     public ILogger Logger { get; private set; } = DefaultLoggerFactory(LogLevel.Information).CreateLogger("Barrel");
 
-    public IServiceProvider? ServiceProvider { get; private set; } = null;
+    public IServiceProvider? ServiceProvider { get; private set; }
 
     /// <inheritdoc cref="JobSchedulerConfiguration.MaxConcurrentJobs" />
     public JobSchedulerConfigurationBuilder WithMaxConcurrentJobs(int maxConcurrentJobs)

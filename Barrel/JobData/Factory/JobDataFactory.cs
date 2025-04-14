@@ -18,7 +18,7 @@ public class JobDataFactory : IJobDataFactory
             RecurrentScheduleOptions recurrentOptions =>
                 (TJobData)(ScheduledJobData)CreateRecurrentJobData<TJob>(recurrentOptions),
 
-            _ => (TJobData)CreateScheduledJobData(typeof(TJob), options)
+            var _ => (TJobData)CreateScheduledJobData(typeof(TJob), options)
         };
     }
 

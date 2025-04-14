@@ -1,11 +1,9 @@
 ﻿using System.Collections.Concurrent;
-using System.Reflection;
 using Barrel.Configuration;
 using Barrel.JobData;
 using Barrel.Scheduler.Queues;
 using Barrel.Utils;
 using Microsoft.Extensions.Logging;
-using BindingFlags = System.Reflection.BindingFlags;
 
 namespace Barrel.Scheduler;
 
@@ -100,7 +98,8 @@ internal class JobThreadHandler : IDisposable
 
             if (!success)
             {
-                _configuration.Logger.LogCritical($"Could not run job {jobData.JobId} : could not instantiate BaseJob.");
+                _configuration.Logger.LogCritical(
+                    $"Could not run job {jobData.JobId} : could not instantiate BaseJob.");
                 return;
             }
         }
@@ -194,7 +193,8 @@ internal class JobThreadHandler : IDisposable
         //  Try for a parameter-less instantiation
         if (!ArgumentLessConstructorChecker.HasArgumentLessConstructor(jobData.JobClass))
         {
-            _configuration.Logger.LogError($"Could not instantiate {jobData.JobClass} (job {jobData.JobId}). Job class does not provide a parameter-less constructor");
+            _configuration.Logger.LogError(
+                $"Could not instantiate {jobData.JobClass} (job {jobData.JobId}). Job class does not provide a parameter-less constructor");
             return false;
         }
 

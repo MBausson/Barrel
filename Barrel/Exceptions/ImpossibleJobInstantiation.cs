@@ -1,6 +1,4 @@
-﻿using Barrel.JobData;
-
-namespace Barrel.Exceptions;
+﻿namespace Barrel.Exceptions;
 
 public class ImpossibleJobInstantiation<TJob>() : Exception(
     $"Could not instantiate {typeof(TJob)} : " +
