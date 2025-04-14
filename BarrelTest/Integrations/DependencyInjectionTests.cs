@@ -29,9 +29,8 @@ public class DependencyInjectionTests(ITestOutputHelper output) : IntegrationTes
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
         var jobData = Scheduler.Schedule<DependentJob>();
-        var job = (DependentJob)jobData.Instance!;
 
-        await WaitForJobToEnd(job);
+        await WaitForNonInstancedJobToRun(jobData);
 
         Assert.True(Dependency.HasWorked);
     }
