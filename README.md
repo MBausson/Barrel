@@ -37,7 +37,7 @@ await scheduler.WaitAllJobs();
 Here's a non-exhaustive list of the features present in Barrel:
 
 - Lazy job instantiation : a job can be instantiated just before it actually gets executed
-- Job instantiation via dependency injection
+- Job instantiation via dependency injection (example in `Samples/DependencyInjection`)
 - Job instantiation via an argument-less constructor (constructor with 0 parameters, or with parameters having default values)
 - Prioritized job queue (`high`, `medium`, `low`)
 - Job retry on fail, with a limit of retry attempts
