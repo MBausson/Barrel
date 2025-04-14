@@ -12,7 +12,7 @@ public class DependencyInjectionTests(ITestOutputHelper output) : IntegrationTes
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        Assert.Throws<ImpossibleJobInstantiation>(() =>
+        Assert.Throws<ImpossibleJobInstantiation<DependentJob>>(() =>
         {
             Scheduler.Schedule<DependentJob>();
         });
