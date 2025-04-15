@@ -17,6 +17,11 @@ public class ScheduleOptions
 
     /// <summary>
     ///     Specifies the maximum amount of times a job can be retried if it failed before.
+    ///     <remarks>
+    ///         If set to 0, the job will never be retried.
+    ///         <br />
+    ///         If set to -1, the job will be retried until it succeeds.
+    ///     </remarks>
     /// </summary>
     public int MaxRetries { get; private set; }
 
@@ -58,9 +63,12 @@ public class ScheduleOptions
         return this;
     }
 
+    /// <inheritdoc cref="MaxRetries" />
     public ScheduleOptions WithMaxRetries(int maxRetries)
     {
-        if (maxRetries < 0) throw new ArgumentOutOfRangeException($"{nameof(MaxRetries)} should be positive or zero.");
+        if (maxRetries < -1)
+            throw new ArgumentOutOfRangeException(
+                $"{nameof(MaxRetries)} should be either be -1, 0, or a positive integer.");
 
         MaxRetries = maxRetries;
 
