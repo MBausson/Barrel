@@ -44,14 +44,23 @@ public class ScheduleOptionsTests
         Assert.Equal(priority, ScheduleOptions.FromPriority(priority).Priority);
     }
 
-    //  Ensures that WithMaxRetries rejects negative values
+    //  Ensures that WithMaxRetries rejects negative values, except -1
     [Fact]
     public void WithMaxRetries_NegativeInputTest()
     {
         Assert.Throws<ArgumentOutOfRangeException>(() =>
         {
-            _options.WithMaxRetries(Random.Shared.Next(int.MinValue, 0));
+            _options.WithMaxRetries(Random.Shared.Next(int.MinValue, -1));
         });
+    }
+
+    //  Ensures that WithMaxRetries accepts -1
+    [Fact]
+    public void WithMaxRetries_NegativeOneInput_SetsMaxRetriesTest()
+    {
+        _options.WithMaxRetries(-1);
+
+        Assert.Equal(-1, _options.MaxRetries);
     }
 
     //  Ensures that WithMaxRetries sets the MaxRetries property

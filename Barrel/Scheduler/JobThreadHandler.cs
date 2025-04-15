@@ -136,22 +136,21 @@ internal class JobThreadHandler : IDisposable
 
         jobData.JobState = JobState.Failed;
 
-        if (jobData.ShouldRetry)
-        {
-            jobData.Retry();
-
-            jobData.JobState = JobState.Enqueued;
-            _jobQueue.EnqueueJob(jobData);
-
-            _configuration.Logger.LogDebug(
-                $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
-        }
-        else
-        {
-            RescheduleIfRecurrent(jobData);
-        }
+        if (jobData.ShouldRetry) RetryFailingJob(jobData);
+        else RescheduleIfRecurrent(jobData);
 
         //  For recurrent failing jobs, we re-schedule when the job cannot be retried
+    }
+
+    private void RetryFailingJob(BaseJobData jobData)
+    {
+        jobData.Retry();
+
+        jobData.JobState = JobState.Enqueued;
+        _jobQueue.EnqueueJob(jobData);
+
+        _configuration.Logger.LogDebug(
+            $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");
     }
 
     private void RescheduleIfRecurrent(BaseJobData jobData)
