@@ -22,13 +22,15 @@ public abstract class BaseJobData
 
     public int RetryAttempts { get; internal set; }
 
-    public bool ShouldRetry => MaxRetryAttempts > RetryAttempts;
+    public bool ShouldRetry => ShouldRetryIndefinitely || MaxRetryAttempts > RetryAttempts;
 
     public Type JobClass { get; internal set; }
 
     public BaseJob? Instance { get; internal set; }
 
     public abstract DateTime NextScheduleOn();
+
+    public bool ShouldRetryIndefinitely => MaxRetryAttempts == -1;
 
     internal bool HasInstance()
     {
