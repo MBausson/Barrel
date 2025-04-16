@@ -62,7 +62,6 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to run on {jobData.EnqueuedOn}");
     }
 
-    //  TODO: Check if job can be instantiated via DI or argument-less constructor
     public void ScheduleRecurrentJob(RecurrentJobData jobData)
     {
         jobData.EnqueuedOn = jobData.NextScheduleOn();
@@ -70,6 +69,14 @@ internal class JobThreadHandler : IDisposable
 
         _configuration.Logger.LogInformation(
             $"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
+    }
+
+    public bool CancelJob(ScheduledJobData jobData)
+    {
+        if (jobData.JobState == JobState.Scheduled)
+            return _scheduleQueue.UnScheduleJob(jobData);
+
+        return _jobQueue.DequeueJob(jobData);
     }
 
     private void JobReady(object? _, JobReadyEventArgs eventArgs)

@@ -33,6 +33,21 @@ public class JobScheduler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
+    public bool CancelScheduledJob(ScheduledJobData job)
+    {
+        if (!job.IsCancellable)
+            throw new ImpossibleJobCancellationException(job);
+
+        var success = _threadHandler.CancelJob(job);
+
+        if (success)
+            _configuration.Logger.LogInformation($"Un-scheduled job {job.JobId}");
+        else
+            _configuration.Logger.LogInformation($"Could not un-schedule job {job.JobId}");
+
+        return success;
+    }
+
     /// <summary>
     ///     Schedule a recurrent job to be executed every X delay
     /// </summary>
@@ -142,7 +157,7 @@ public class JobScheduler : IDisposable
 
     /// <summary>
     ///     Ensures that a job class can be instantiated via DI or an argument-less constructor.
-    ///     <exception cref="Exceptions.ImpossibleJobInstantiation">Thrown when a job cannot be instantiated.</exception>
+    ///     <exception cref="ImpossibleJobInstantiationException{TJob}">Thrown when a job cannot be instantiated.</exception>
     /// </summary>
     private void EnsureJobInstantiation<TJob>() where TJob : BaseJob
     {
@@ -150,7 +165,7 @@ public class JobScheduler : IDisposable
 
         if (_instantiableCache.TryGetValue(type, out var cachedValue))
         {
-            if (!cachedValue) throw new ImpossibleJobInstantiation<TJob>();
+            if (!cachedValue) throw new ImpossibleJobInstantiationException<TJob>();
 
             return;
         }
@@ -173,6 +188,6 @@ public class JobScheduler : IDisposable
 
         //  No argument-less constructor, no DI => impossible
         _instantiableCache[type] = false;
-        throw new ImpossibleJobInstantiation<TJob>();
+        throw new ImpossibleJobInstantiationException<TJob>();
     }
 }

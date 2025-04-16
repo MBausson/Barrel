@@ -28,7 +28,7 @@ public class JobDataFactory : IJobDataFactory
         where TOptions : ScheduleOptions
     {
         if (options is CalendarScheduleOptions or RecurrentScheduleOptions)
-            throw new ImpossibleJobInstantiation<BaseJob>();
+            throw new ImpossibleJobInstantiationException<BaseJob>();
 
         var jobData = new ScheduledJobData
         {

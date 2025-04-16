@@ -29,6 +29,14 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
         jobData.JobState = JobState.Enqueued;
     }
 
+    public bool DequeueJob(BaseJobData jobData)
+    {
+        lock (_queue)
+        {
+            return _queue.Remove(jobData);
+        }
+    }
+
     //  Called when a job finished its work
     public void JobFinished()
     {
