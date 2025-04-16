@@ -18,6 +18,6 @@ using var scheduler = new JobScheduler(new JobSchedulerConfigurationBuilder()
 //  If we do not pass a SimpleJob instance, Barrel will try to create one with DI
 scheduler.Schedule<SimpleJob>();
 
-await scheduler.WaitAllJobs();
+await scheduler.WaitAllJobsAsync();
 
 // The SimpleJob will be instantiated via Dependency Injection, along with its dependencies.

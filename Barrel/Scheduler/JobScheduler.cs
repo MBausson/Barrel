@@ -143,7 +143,7 @@ public class JobScheduler : IDisposable
     ///     Blocking method that waits for all scheduled, enqueued and running jobs to end.
     ///     <remarks>This method does not restrict the schedule of new jobs after it was called</remarks>
     /// </summary>
-    public async Task WaitAllJobs()
+    public async Task WaitAllJobsAsync()
     {
         while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(50);
     }

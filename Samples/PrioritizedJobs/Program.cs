@@ -18,7 +18,7 @@ scheduler.Schedule(new SimpleJob("Medium")); // 2nd scheduled job -- 3rd execute
 scheduler.Schedule(new SimpleJob("High"),
     ScheduleOptions.FromPriority(JobPriority.High)); // 3rd scheduled job -- 2nd executed
 
-await scheduler.WaitAllJobs();
+await scheduler.WaitAllJobsAsync();
 //  We have specified that our scheduler should, at most, run one job concurrently.
 //  The first job will run normally, but the next job will be third one, since its priority is higher than the 2nd job
 

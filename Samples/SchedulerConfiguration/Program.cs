@@ -14,4 +14,4 @@ scheduler.Schedule<SimpleJob>();
 //  This job will run when the first job will end
 scheduler.Schedule<SimpleJob>();
 
-await scheduler.WaitAllJobs();
+await scheduler.WaitAllJobsAsync();

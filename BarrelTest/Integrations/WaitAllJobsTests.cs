@@ -9,7 +9,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var beforeTime = DateTime.Now;
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         var afterTime = DateTime.Now;
         var duration = afterTime - beforeTime;
@@ -26,7 +26,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var beforeTime = DateTime.Now;
 
         var jobData = Scheduler.Schedule(job);
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         var afterTime = DateTime.Now;
         var duration = afterTime - beforeTime;
@@ -50,7 +50,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var noDelayJobData = Scheduler.Schedule(noDelayJob);
         var delayedJobData = Scheduler.Schedule(delayedJob, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         var afterTime = DateTime.Now;
         var duration = afterTime - beforeTime;

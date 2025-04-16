@@ -7,4 +7,4 @@ using var scheduler = new JobScheduler();
 scheduler.Schedule<SimpleJob>(new ScheduleOptions().WithDelay(TimeSpan.FromSeconds(1)));
 scheduler.Schedule<SimpleJob>(new ScheduleOptions().WithDelay(TimeSpan.FromSeconds(3)));
 
-await scheduler.WaitAllJobs();
+await scheduler.WaitAllJobsAsync();

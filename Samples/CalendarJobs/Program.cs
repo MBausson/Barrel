@@ -13,4 +13,4 @@ DateTime[] scheduleDateTimes =
 //  Schedules 3 jobs that will respectively be executed 2, 5 and 10 seconds from now.
 scheduler.ScheduleCalendar<SimpleJob>(new CalendarScheduleOptions().WithDates(scheduleDateTimes));
 
-await scheduler.WaitAllJobs();
+await scheduler.WaitAllJobsAsync();
