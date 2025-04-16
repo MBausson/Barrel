@@ -43,6 +43,7 @@ Here's a non-exhaustive list of the features present in Barrel:
 - Job retry on fail, with a limit of retry attempts
 - Recurrent jobs that are executed every X delay
 - Calendar jobs that are executed on a very particular date
+- Anonymous jobs : schedule and declare a job using a lambda expression
 
 ### How it's done
 

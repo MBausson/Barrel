@@ -19,6 +19,23 @@ public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
         Assert.True(job.BeforePerformExecuted);
     }
 
+    [Fact]
+    public async Task PerformAnonymousJobTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var performed = false;
+
+        var jobData = Scheduler.Schedule(() =>
+        {
+            performed = true;
+        });
+
+        await WaitForNonInstancedJobToRun(jobData);
+
+        Assert.True(performed);
+    }
+
     private class PerformProofJob : TestJob
     {
         public bool PerformExecuted { get; private set; }

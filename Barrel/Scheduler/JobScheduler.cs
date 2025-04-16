@@ -52,7 +52,7 @@ public class JobScheduler : IDisposable
     ///     Schedule a recurrent job to be on a precise date
     /// </summary>
     /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
-    /// <typeparam name="TJob">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
+    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     public IEnumerable<ScheduledJobData> ScheduleCalendar<TJob>(CalendarScheduleOptions options)
         where TJob : BaseJob, new()
     {
@@ -86,9 +86,15 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
-    ///     Schedules a job to run with a specified delay.
+    /// Schedules an anonymous job to run without delay.
     /// </summary>
-    /// <param name="job">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</param>
+    /// <param name="actionJob">The action the job will be running</param>
+    public ScheduledJobData Schedule(Action actionJob) => Schedule(new AnonymousJob(actionJob));
+
+    /// <summary>
+    ///     Schedules a job to run with specified options.
+    /// </summary>
+    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     public ScheduledJobData Schedule<TJob>(TJob job, ScheduleOptions options) where TJob : BaseJob
     {
@@ -96,6 +102,14 @@ public class JobScheduler : IDisposable
 
         return ScheduleFromJobData(jobData);
     }
+
+    /// <summary>
+    /// Schedules an anonymous job to run with specified options.
+    /// </summary>
+    /// <param name="actionJob">The action the job will be running</param>
+    /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
+    public ScheduledJobData Schedule(Action actionJob, ScheduleOptions options) =>
+        Schedule(new AnonymousJob(actionJob), options);
 
     /// <summary>
     ///     Schedules a job to run with a specified delay.
