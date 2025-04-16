@@ -49,8 +49,8 @@ Here's a non-exhaustive list of the features present in Barrel:
 
 Job schedulers use two separate threads to handle incoming and running jobs.
 
-- The first one processes a "Schedule" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a second queue.
-- The second thread is responsible for handling the running jobs queue. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs. In this queue, jobs with a high Priority are run first. The rate at which jobs are processed in this queue can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
+- The first one processes a "ScheduleQueue" list, which is a list of scheduled jobs. This thread is responsible for finding jobs that are ready to be executed. When it finds one, the job is placed in a second queue.
+- The second thread processes a "WaitQueue" list. This queue contains jobs that are waiting to be executed, because there are already too many concurrent jobs that are currently being executed. In this queue, jobs with a high Priority are run first. The rate at which jobs are processed in this queue can be changed via the `JobSchedulerConfigurationBuilder.WithMaxConcurrentJobs()` method.
 - Jobs are ran within a dedicated `System.Threading.Tasks.Task` object
 
 ## Testing
