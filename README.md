@@ -44,6 +44,7 @@ Here's a non-exhaustive list of the features present in Barrel:
 - Recurrent jobs that are executed every X delay
 - Calendar jobs that are executed on a very particular date
 - Anonymous jobs : schedule and declare a job using a lambda expression
+- Jobs can be cancelled. **Note** : this is only available for punctual jobs, an implementation for recurrent & calendar jobs is to come
 
 ### How it's done
 
