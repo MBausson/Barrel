@@ -12,10 +12,9 @@ internal class JobThreadHandler : IDisposable
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
 
-    private readonly JobQueue _jobQueue;
-
-    private readonly ConcurrentDictionary<int, Task> _runningJobs;
     private readonly ScheduleQueue _scheduleQueue;
+    private readonly WaitQueue _waitQueue;
+    private readonly ConcurrentDictionary<int, Task> _runningJobs;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -23,17 +22,17 @@ internal class JobThreadHandler : IDisposable
         _cancellationTokenSource = new CancellationTokenSource();
 
         _scheduleQueue = new ScheduleQueue(_configuration.SchedulePollingRate, _cancellationTokenSource);
-        _jobQueue = new JobQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
+        _waitQueue = new WaitQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
             _cancellationTokenSource);
 
         _runningJobs = new ConcurrentDictionary<int, Task>();
 
         _scheduleQueue.OnJobReady += JobReady;
-        _jobQueue.OnJobFired += JobFired;
+        _waitQueue.OnJobFired += JobStarted;
 
         //  Background tasks to handle upcoming jobs
         _scheduleQueue.StartProcessingSchedules();
-        _jobQueue.StartProcessingJobs();
+        _waitQueue.StartProcessingJobs();
     }
 
     public bool IsDisposed { get; private set; }
@@ -41,7 +40,7 @@ internal class JobThreadHandler : IDisposable
     public void Dispose()
     {
         _scheduleQueue.OnJobReady -= JobReady;
-        _jobQueue.OnJobFired -= JobFired;
+        _waitQueue.OnJobFired -= JobStarted;
 
         _cancellationTokenSource.Dispose();
 
@@ -51,7 +50,7 @@ internal class JobThreadHandler : IDisposable
 
     public bool IsEmpty()
     {
-        return _runningJobs.IsEmpty && _jobQueue.IsEmpty && _scheduleQueue.IsEmpty;
+        return _runningJobs.IsEmpty && _waitQueue.IsEmpty && _scheduleQueue.IsEmpty;
     }
 
     //  TODO: Check if job can be instantiated via DI or argument-less constructor
@@ -62,7 +61,6 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogInformation($"Scheduled job {jobData.JobId} to run on {jobData.EnqueuedOn}");
     }
 
-    //  TODO: Check if job can be instantiated via DI or argument-less constructor
     public void ScheduleRecurrentJob(RecurrentJobData jobData)
     {
         jobData.EnqueuedOn = jobData.NextScheduleOn();
@@ -72,14 +70,22 @@ internal class JobThreadHandler : IDisposable
             $"Scheduled recurrent job {jobData.JobId}. Next scheduled on {jobData.NextScheduleOn()}");
     }
 
+    public bool CancelJob(ScheduledJobData jobData)
+    {
+        if (jobData.JobState == JobState.Scheduled)
+            return _scheduleQueue.UnScheduleJob(jobData);
+
+        return _waitQueue.DequeueJob(jobData);
+    }
+
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
-        _jobQueue.EnqueueJob(eventArgs.JobData);
+        _waitQueue.EnqueueJob(eventArgs.JobData);
 
         _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.JobId}");
     }
 
-    private void JobFired(object? _, JobFiredEventArgs e)
+    private void JobStarted(object? _, JobFiredEventArgs e)
     {
         var jobTask = RunJob(e.BaseJobData);
 
@@ -126,7 +132,7 @@ internal class JobThreadHandler : IDisposable
         }
         finally
         {
-            _jobQueue.JobFinished();
+            _waitQueue.JobFinished();
         }
     }
 
@@ -147,7 +153,7 @@ internal class JobThreadHandler : IDisposable
         jobData.Retry();
 
         jobData.JobState = JobState.Enqueued;
-        _jobQueue.EnqueueJob(jobData);
+        _waitQueue.EnqueueJob(jobData);
 
         _configuration.Logger.LogDebug(
             $"Retrying job {jobData.JobId} ({jobData.RetryAttempts}/{jobData.MaxRetryAttempts}) ...");

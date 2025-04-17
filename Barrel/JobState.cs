@@ -30,5 +30,10 @@ public enum JobState
     /// <summary>
     ///     State of a job that whose execution has failed, due to an unexpected exception.
     /// </summary>
-    Failed
+    Failed,
+
+    /// <summary>
+    /// State of a job that has been cancelled before its execution began.
+    /// </summary>
+    Cancelled
 }

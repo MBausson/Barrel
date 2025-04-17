@@ -28,6 +28,14 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
+    public bool UnScheduleJob(ScheduledJobData jobData)
+    {
+        lock (_queue)
+        {
+            return _queue.Remove(jobData.EnqueuedOn);
+        }
+    }
+
     private async Task ProcessSchedules()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)

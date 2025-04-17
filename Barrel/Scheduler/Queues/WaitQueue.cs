@@ -7,7 +7,7 @@ internal class JobFiredEventArgs(BaseJobData jobData) : EventArgs
     public readonly BaseJobData BaseJobData = jobData;
 }
 
-internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationTokenSource cancellationTokenSource)
+internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTokenSource cancellationTokenSource)
 {
     private readonly List<BaseJobData> _queue = new();
     private readonly SemaphoreSlim _semaphore = new(maxConcurrentJobs);
@@ -27,6 +27,14 @@ internal class JobQueue(int pollingRate, int maxConcurrentJobs, CancellationToke
         }
 
         jobData.JobState = JobState.Enqueued;
+    }
+
+    public bool DequeueJob(BaseJobData jobData)
+    {
+        lock (_queue)
+        {
+            return _queue.Remove(jobData);
+        }
     }
 
     //  Called when a job finished its work

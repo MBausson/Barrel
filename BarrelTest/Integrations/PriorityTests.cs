@@ -19,7 +19,7 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
         foreach (var job in jobsInstances)
             Scheduler.Schedule(job, ScheduleOptions.FromPriority(priority));
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         Assert.All(
             jobsInstances.SkipLast(1),
@@ -52,7 +52,7 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
         Scheduler.Schedule(secondMediumJob, ScheduleOptions.FromPriority(JobPriority.Medium));
         Scheduler.Schedule(highJob, ScheduleOptions.FromPriority(JobPriority.High));
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         //  Asserts that highJob has been executed before secondMediumJob
         Assert.True(highJob.ExecutedOn < secondMediumJob.ExecutedOn);
@@ -83,7 +83,7 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
         Scheduler.Schedule(lowJob, ScheduleOptions.FromPriority(JobPriority.Low));
         Scheduler.Schedule(secondMediumJob, ScheduleOptions.FromPriority(JobPriority.Medium));
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         //  Asserts that secondMediumJob has been executed before lowJob
         Assert.True(secondMediumJob.ExecutedOn < lowJob.ExecutedOn);
@@ -114,7 +114,7 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
         Scheduler.Schedule(lowJob, ScheduleOptions.FromPriority(JobPriority.Low));
         Scheduler.Schedule(highJob, ScheduleOptions.FromPriority(JobPriority.High));
 
-        await Scheduler.WaitAllJobs();
+        await Scheduler.WaitAllJobsAsync();
 
         //  Asserts that secondMediumJob has been executed before lowJob
         Assert.True(highJob.ExecutedOn < lowJob.ExecutedOn);
