@@ -41,7 +41,10 @@ public class JobScheduler : IDisposable
         var success = _threadHandler.CancelJob(job);
 
         if (success)
+        {
+            job.JobState = JobState.Cancelled;
             _configuration.Logger.LogInformation($"Un-scheduled job {job.JobId}");
+        }
         else
             _configuration.Logger.LogInformation($"Could not un-schedule job {job.JobId}");
 
@@ -143,9 +146,9 @@ public class JobScheduler : IDisposable
     ///     Blocking method that waits for all scheduled, enqueued and running jobs to end.
     ///     <remarks>This method does not restrict the schedule of new jobs after it was called</remarks>
     /// </summary>
-    public async Task WaitAllJobsAsync()
+    public async Task WaitAllJobsAsync(int pollingRate = 50)
     {
-        while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(50);
+        while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(pollingRate);
     }
 
     private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)

@@ -50,4 +50,38 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
          Assert.Equal(JobState.Success, jobData.JobState);
          Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
      }
+
+     [Fact]
+     // Ensures that a scheduled job is effectively cancelled when requested
+     public void CancelScheduledJob_SucceedsTest()
+     {
+         Scheduler = new JobScheduler(ConfigurationBuilder);
+
+         var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(3)));
+
+         Assert.Equal(JobState.Scheduled, jobData.JobState);
+         Scheduler.CancelScheduledJob(jobData);
+         Assert.Equal(JobState.Cancelled, jobData.JobState);
+     }
+
+     [Fact]
+     // Ensures that an enqueued job is effectively cancelled when requested
+     public async Task CancelEnqueuedJob_SucceedsTest()
+     {
+         ConfigurationBuilder.WithMaxConcurrentJobs(1);
+         Scheduler = new JobScheduler(ConfigurationBuilder);
+
+         var busyJob = new BusyJob(5000);
+         Scheduler.Schedule(busyJob);
+
+         await WaitForJobToRun(busyJob);
+
+         var jobToCancelData = Scheduler.Schedule<SuccessfulJob>();
+
+         await Task.Delay(50);
+
+         Assert.Equal(JobState.Enqueued, jobToCancelData.JobState);
+         Scheduler.CancelScheduledJob(jobToCancelData);
+         Assert.Equal(JobState.Cancelled, jobToCancelData.JobState);
+     }
 }
