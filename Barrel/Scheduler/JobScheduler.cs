@@ -151,6 +151,12 @@ public class JobScheduler : IDisposable
         while (!_threadHandler.IsDisposed && !_threadHandler.IsEmpty()) await Task.Delay(pollingRate);
     }
 
+    /// <summary>
+    /// Gives information at a given time, about the state of the different internal queues (scheduled, waiting and
+    /// running job queues).
+    /// </summary>
+    public Snapshot TakeSnapshot() => _threadHandler.TakeSnapshot();
+
     private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
     {
         _threadHandler.ScheduleJob(jobData);

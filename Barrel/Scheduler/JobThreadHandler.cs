@@ -14,7 +14,7 @@ internal class JobThreadHandler : IDisposable
 
     private readonly ScheduleQueue _scheduleQueue;
     private readonly WaitQueue _waitQueue;
-    private readonly ConcurrentDictionary<int, Task> _runningJobs;
+    private readonly ConcurrentDictionary<int, RunningJob> _runningJobs;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -25,7 +25,7 @@ internal class JobThreadHandler : IDisposable
         _waitQueue = new WaitQueue(_configuration.QueuePollingRate, _configuration.MaxConcurrentJobs,
             _cancellationTokenSource);
 
-        _runningJobs = new ConcurrentDictionary<int, Task>();
+        _runningJobs = new ConcurrentDictionary<int, RunningJob>();
 
         _scheduleQueue.OnJobReady += JobReady;
         _waitQueue.OnJobFired += JobStarted;
@@ -78,6 +78,17 @@ internal class JobThreadHandler : IDisposable
         return _waitQueue.DequeueJob(jobData);
     }
 
+    public Snapshot TakeSnapshot()
+    {
+        return new()
+        {
+            SnapshotOn = DateTime.Now,
+            RunningJobs = _runningJobs.Select((kv, _) => ScheduledJobSnapshot.FromBaseJobData(kv.Value.JobData)),
+            ScheduledJobs = _scheduleQueue.TakeSnapshot(),
+            WaitingJobs = _waitQueue.TakeSnapshot(),
+        };
+    }
+
     private void JobReady(object? _, JobReadyEventArgs eventArgs)
     {
         _waitQueue.EnqueueJob(eventArgs.JobData);
@@ -89,7 +100,7 @@ internal class JobThreadHandler : IDisposable
     {
         var jobTask = RunJob(e.BaseJobData);
 
-        _runningJobs[jobTask.Id] = jobTask;
+        _runningJobs[jobTask.Id] = new RunningJob(jobTask, e.BaseJobData);
 
         //  Removes the job from the running queue after it is completed
         jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
@@ -206,4 +217,6 @@ internal class JobThreadHandler : IDisposable
         jobData.Instance = (BaseJob)Activator.CreateInstance(jobData.JobClass)!;
         return true;
     }
+
+    private record RunningJob(Task Task, BaseJobData JobData);
 }

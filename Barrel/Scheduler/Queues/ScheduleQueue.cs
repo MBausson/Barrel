@@ -36,6 +36,14 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
+    public IEnumerable<ScheduledJobSnapshot> TakeSnapshot()
+    {
+        lock (_queue)
+        {
+            return _queue.Select(kv => ScheduledJobSnapshot.FromBaseJobData(kv.Value));
+        }
+    }
+
     private async Task ProcessSchedules()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
