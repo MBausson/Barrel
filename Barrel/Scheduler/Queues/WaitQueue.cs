@@ -43,6 +43,11 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
         _semaphore.Release();
     }
 
+    public IEnumerable<ScheduledJobSnapshot> TakeSnapshot()
+    {
+        return _queue.Select(ScheduledJobSnapshot.FromBaseJobData);
+    }
+
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
     private async Task ProcessJobs()
     {
