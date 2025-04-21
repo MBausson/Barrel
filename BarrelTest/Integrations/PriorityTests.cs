@@ -122,11 +122,11 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
 
     private class PriorityJob : BaseJob
     {
-        public DateTime ExecutedOn { get; private set; }
+        public DateTimeOffset ExecutedOn { get; private set; }
 
         protected override async Task PerformAsync()
         {
-            ExecutedOn = DateTime.Now;
+            ExecutedOn = DateTimeOffset.UtcNow;
 
             await Task.Delay(200);
         }

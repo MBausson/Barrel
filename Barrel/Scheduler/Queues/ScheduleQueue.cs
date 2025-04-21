@@ -9,7 +9,7 @@ public class JobReadyEventArgs(BaseJobData jobData) : EventArgs
 
 public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellationTokenSource)
 {
-    private readonly SortedList<DateTime, BaseJobData> _queue = new();
+    private readonly SortedList<DateTimeOffset, BaseJobData> _queue = new();
     public bool IsEmpty => _queue.Count == 0;
     public event EventHandler<JobReadyEventArgs> OnJobReady = null!;
 
@@ -68,20 +68,20 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
-    private List<KeyValuePair<DateTime, BaseJobData>> FindJobsToEnqueue()
+    private List<KeyValuePair<DateTimeOffset, BaseJobData>> FindJobsToEnqueue()
     {
-        List<KeyValuePair<DateTime, BaseJobData>> jobsToEnqueue = [];
+        List<KeyValuePair<DateTimeOffset, BaseJobData>> jobsToEnqueue = [];
 
         lock (_queue)
         {
-            var dateNow = DateTime.Now;
+            var dateNow = DateTimeOffset.UtcNow;
 
             foreach (var (scheduleDateTime, jobData) in _queue)
             {
                 //  The _queue list is sorted, thus there is no need to look further if this check fails
                 if (scheduleDateTime > dateNow) break;
 
-                jobsToEnqueue.Add(new KeyValuePair<DateTime, BaseJobData>(scheduleDateTime, jobData));
+                jobsToEnqueue.Add(new (key: scheduleDateTime, value: jobData));
             }
         }
 

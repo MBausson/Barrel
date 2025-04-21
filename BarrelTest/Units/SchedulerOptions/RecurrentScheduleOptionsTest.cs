@@ -24,7 +24,7 @@ public class RecurrentScheduleOptionsTest
     [Fact]
     public void NextScheduleOn_NoPeriodicity()
     {
-        Assert.Equal(DateTime.Now, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+        Assert.Equal(DateTimeOffset.UtcNow, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
     }
 
     //  Ensures that NextScheduleOn returns the valid datetime when delay is applied
@@ -35,7 +35,7 @@ public class RecurrentScheduleOptionsTest
 
         _options.Every(TimeSpan.FromSeconds(secondsPeriodicity));
 
-        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsPeriodicity), _options.NextScheduleOn(),
+        Assert.Equal(DateTimeOffset.UtcNow + TimeSpan.FromSeconds(secondsPeriodicity), _options.NextScheduleOn(),
             TimeSpan.FromMilliseconds(999));
     }
 
@@ -49,7 +49,7 @@ public class RecurrentScheduleOptionsTest
         _options.WithDelay(TimeSpan.FromSeconds(secondsDelay));
         _options.Every(TimeSpan.FromSeconds(secondsPeriodicity));
 
-        var expectedDate = DateTime.Now + TimeSpan.FromSeconds(secondsDelay) + TimeSpan.FromSeconds(secondsPeriodicity);
+        var expectedDate = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(secondsDelay) + TimeSpan.FromSeconds(secondsPeriodicity);
 
         Assert.Equal(expectedDate, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
     }

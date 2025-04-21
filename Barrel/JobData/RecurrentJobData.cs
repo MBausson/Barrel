@@ -9,7 +9,7 @@ public class RecurrentJobData : ScheduledJobData
 {
     public required RecurrentScheduleOptions Options { get; init; }
 
-    public new virtual DateTime NextScheduleOn()
+    public new virtual DateTimeOffset NextScheduleOn()
     {
         return Options.NextScheduleOn();
     }

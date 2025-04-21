@@ -43,13 +43,13 @@ public class RecurrentTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         public static readonly TaskCompletionSource<bool> JobsFinishedSource = new();
 
-        private static readonly List<DateTime> _executionDates = new();
-        public static IReadOnlyList<DateTime> ExecutionDates => _executionDates;
+        private static readonly List<DateTimeOffset> _executionDates = new();
+        public static IReadOnlyList<DateTimeOffset> ExecutionDates => _executionDates;
         public static int ExecutionsCount => _executionDates.Count;
 
         protected override Task PerformAsync()
         {
-            _executionDates.Add(DateTime.Now);
+            _executionDates.Add(DateTimeOffset.UtcNow);
 
             if (ExecutionsCount == 3) JobsFinishedSource.SetResult(true);
 

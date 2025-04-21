@@ -7,7 +7,7 @@ namespace Barrel;
 /// </summary>
 public readonly record struct Snapshot
 {
-    public DateTime SnapshotOn { get; init; }
+    public DateTimeOffset SnapshotOn { get; init; }
 
     public IEnumerable<ScheduledJobSnapshot> RunningJobs { get; init; }
     public IEnumerable<ScheduledJobSnapshot> WaitingJobs { get; init; }
@@ -27,7 +27,7 @@ public record struct ScheduledJobSnapshot
     public int MaxRetryAttempts { get; init; }
     public int RetryAttempts { get; init; }
     public Type JobClass { get; init; }
-    public DateTime NextScheduleOn { get; init; }
+    public DateTimeOffset NextScheduleOn { get; init; }
 
     internal static ScheduledJobSnapshot FromBaseJobData(BaseJobData jobData)
     {

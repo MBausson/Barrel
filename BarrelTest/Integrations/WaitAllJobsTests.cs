@@ -7,11 +7,11 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
     public async Task WithNoJobs()
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
-        var beforeTime = DateTime.Now;
+        var beforeTime = DateTimeOffset.UtcNow;
 
         await Scheduler.WaitAllJobsAsync();
 
-        var afterTime = DateTime.Now;
+        var afterTime = DateTimeOffset.UtcNow;
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.Zero, TimeSpan.FromSeconds(1));
@@ -23,12 +23,12 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new BusyJob(1000);
-        var beforeTime = DateTime.Now;
+        var beforeTime = DateTimeOffset.UtcNow;
 
         var jobData = Scheduler.Schedule(job);
         await Scheduler.WaitAllJobsAsync();
 
-        var afterTime = DateTime.Now;
+        var afterTime = DateTimeOffset.UtcNow;
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(1), TimeSpan.MaxValue);
@@ -45,14 +45,14 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var noDelayJob = new BusyJob(1000);
         var delayedJob = new BusyJob(1000);
-        var beforeTime = DateTime.Now;
+        var beforeTime = DateTimeOffset.UtcNow;
 
         var noDelayJobData = Scheduler.Schedule(noDelayJob);
         var delayedJobData = Scheduler.Schedule(delayedJob, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
 
         await Scheduler.WaitAllJobsAsync();
 
-        var afterTime = DateTime.Now;
+        var afterTime = DateTimeOffset.UtcNow;
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(2), TimeSpan.MaxValue);

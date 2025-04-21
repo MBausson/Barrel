@@ -28,7 +28,7 @@ public abstract class BaseJobData
 
     public BaseJob? Instance { get; internal set; }
 
-    public abstract DateTime NextScheduleOn();
+    public abstract DateTimeOffset NextScheduleOn();
 
     public bool ShouldRetryIndefinitely => MaxRetryAttempts == -1;
 

@@ -82,7 +82,7 @@ internal class JobThreadHandler : IDisposable
     {
         return new()
         {
-            SnapshotOn = DateTime.Now,
+            SnapshotOn = DateTimeOffset.UtcNow,
             RunningJobs = _runningJobs.Select((kv, _) => ScheduledJobSnapshot.FromBaseJobData(kv.Value.JobData)),
             ScheduledJobs = _scheduleQueue.TakeSnapshot(),
             WaitingJobs = _waitQueue.TakeSnapshot(),

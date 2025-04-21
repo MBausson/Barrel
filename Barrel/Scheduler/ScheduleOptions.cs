@@ -75,8 +75,8 @@ public class ScheduleOptions
         return this;
     }
 
-    public virtual DateTime NextScheduleOn()
+    public virtual DateTimeOffset NextScheduleOn()
     {
-        return DateTime.Now + Delay;
+        return DateTime.UtcNow + Delay;
     }
 }

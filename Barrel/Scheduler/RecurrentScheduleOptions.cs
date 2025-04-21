@@ -19,5 +19,5 @@ public class RecurrentScheduleOptions : ScheduleOptions
         return this;
     }
 
-    public override DateTime NextScheduleOn() => base.NextScheduleOn() + Periodicity;
+    public override DateTimeOffset NextScheduleOn() => base.NextScheduleOn() + Periodicity;
 }
