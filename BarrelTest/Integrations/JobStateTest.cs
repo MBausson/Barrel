@@ -18,7 +18,7 @@ public class JobStateTest : IntegrationTest
 
         var jobData = Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
 
-        Assert.Equal(JobState.Scheduled, jobData.JobState);
+        Assert.Equal(JobState.Scheduled, jobData.State);
     }
 
     // Un-delayed jobs should be Enqueued
@@ -37,7 +37,7 @@ public class JobStateTest : IntegrationTest
 
         await WaitForJobToRun(busyJob);
 
-        Assert.Equal(JobState.Enqueued, successfulJobData.JobState);
+        Assert.Equal(JobState.Enqueued, successfulJobData.State);
     }
 
     // Running jobs should be Running
@@ -51,7 +51,7 @@ public class JobStateTest : IntegrationTest
 
         await WaitForJobToRun(job);
 
-        Assert.Equal(JobState.Running, jobData.JobState);
+        Assert.Equal(JobState.Running, jobData.State);
     }
 
     //  Jobs that throw an error should be Failed
@@ -65,7 +65,7 @@ public class JobStateTest : IntegrationTest
 
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Failed, jobData.JobState);
+        Assert.Equal(JobState.Failed, jobData.State);
     }
 
     //  Jobs that run completely should be Success
@@ -79,6 +79,6 @@ public class JobStateTest : IntegrationTest
 
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Success, jobData.JobState);
+        Assert.Equal(JobState.Success, jobData.State);
     }
 }

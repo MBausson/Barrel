@@ -45,14 +45,14 @@ public class JobDataFactory : IJobDataFactory
         {
             JobClass = typeof(TJob),
             EnqueuedOn = dateTime,
-            JobPriority = options.Priority,
+            Priority = options.Priority,
             MaxRetryAttempts = options.MaxRetries
         }).ToArray();
 
         return new CalendarJobData
         {
             ScheduledJobs = scheduledJobs,
-            JobPriority = options.Priority,
+            Priority = options.Priority,
             MaxRetryAttempts = options.MaxRetries
         };
     }
@@ -72,14 +72,14 @@ public class JobDataFactory : IJobDataFactory
         {
             JobClass = jobType,
             EnqueuedOn = options.NextScheduleOn(),
-            JobPriority = options.Priority,
+            Priority = options.Priority,
             MaxRetryAttempts = options.MaxRetries
         };
     }
 
     private ScheduledJobData SetDataToJobData(ScheduledJobData jobData, ScheduleOptions options)
     {
-        jobData.JobPriority = options.Priority;
+        jobData.Priority = options.Priority;
         jobData.EnqueuedOn = options.NextScheduleOn();
         jobData.MaxRetryAttempts = options.MaxRetries;
 

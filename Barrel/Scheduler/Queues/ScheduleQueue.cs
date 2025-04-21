@@ -20,7 +20,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
 
     public void ScheduleJob(ScheduledJobData jobData)
     {
-        jobData.JobState = JobState.Scheduled;
+        jobData.State = JobState.Scheduled;
 
         lock (_queue)
         {

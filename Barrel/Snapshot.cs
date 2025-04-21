@@ -33,9 +33,9 @@ public record struct ScheduledJobSnapshot
     {
         return new ScheduledJobSnapshot
         {
-            JobId = jobData.JobId,
-            State = jobData.JobState,
-            Priority = jobData.JobPriority,
+            JobId = jobData.Id,
+            State = jobData.State,
+            Priority = jobData.Priority,
             MaxRetryAttempts = jobData.MaxRetryAttempts,
             RetryAttempts = jobData.RetryAttempts,
             JobClass = jobData.JobClass,

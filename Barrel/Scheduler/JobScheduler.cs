@@ -42,11 +42,11 @@ public class JobScheduler : IDisposable
 
         if (success)
         {
-            job.JobState = JobState.Cancelled;
-            _configuration.Logger.LogInformation($"Un-scheduled job {job.JobId}");
+            job.State = JobState.Cancelled;
+            _configuration.Logger.LogInformation($"Un-scheduled job {job.Id}");
         }
         else
-            _configuration.Logger.LogInformation($"Could not un-schedule job {job.JobId}");
+            _configuration.Logger.LogInformation($"Could not un-schedule job {job.Id}");
 
         return success;
     }

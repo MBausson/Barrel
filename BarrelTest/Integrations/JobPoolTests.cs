@@ -20,7 +20,7 @@ public class JobPoolTests : IntegrationTest
         var jobData = Scheduler.Schedule(job);
         await WaitForJobToEnd(job);
 
-        Assert.NotEqual(JobState.Enqueued, jobData.JobState);
+        Assert.NotEqual(JobState.Enqueued, jobData.State);
     }
 
     //  This test really doesn't want to pass in CI, it's a flaky test
@@ -43,14 +43,14 @@ public class JobPoolTests : IntegrationTest
 
         //  The pool is blocked by the first job.
         //  The second job should be waiting enqueued
-        Assert.Equal(JobState.Running, firstJobData.JobState);
-        Assert.Equal(JobState.Enqueued, secondJobData.JobState);
+        Assert.Equal(JobState.Running, firstJobData.State);
+        Assert.Equal(JobState.Enqueued, secondJobData.State);
 
         await WaitForJobToEnd(firstJob);
 
         //  Now the first job is done and the second one has already started
-        Assert.Equal(JobState.Success, firstJobData.JobState);
-        Assert.Equal(JobState.Running, secondJobData.JobState);
+        Assert.Equal(JobState.Success, firstJobData.State);
+        Assert.Equal(JobState.Running, secondJobData.State);
     }
 #endif
 }

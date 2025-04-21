@@ -19,7 +19,7 @@ public class DelayTests : IntegrationTest
         var jobData = Scheduler.Schedule(job);
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Success, jobData.JobState);
+        Assert.Equal(JobState.Success, jobData.State);
     }
 
     [Fact]

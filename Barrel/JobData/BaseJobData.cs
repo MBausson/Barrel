@@ -6,17 +6,17 @@ public abstract class BaseJobData
     ///     A unique identifier bound to the creation of a job.
     ///     <remarks>This field will be overridable in the future</remarks>
     /// </summary>
-    public Guid JobId { get; } = Guid.NewGuid();
+    public Guid Id { get; } = Guid.NewGuid();
 
     /// <summary>
     ///     The priority level of a job, which will influence the scheduler
     /// </summary>
-    public JobPriority JobPriority { get; internal set; }
+    public JobPriority Priority { get; internal set; }
 
     /// <summary>
     ///     The current state of a job. This value is updated by the scheduler.
     /// </summary>
-    public JobState JobState { get; internal set; }
+    public JobState State { get; internal set; }
 
     public int MaxRetryAttempts { get; internal set; }
 
@@ -32,7 +32,7 @@ public abstract class BaseJobData
 
     public bool ShouldRetryIndefinitely => MaxRetryAttempts == -1;
 
-    public bool IsCancellable => JobState switch
+    public bool IsCancellable => State switch
     {
         JobState.Scheduled or JobState.Enqueued => true,
         _ => false

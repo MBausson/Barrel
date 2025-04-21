@@ -32,7 +32,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(1), TimeSpan.MaxValue);
-        Assert.Equal(JobState.Success, jobData.JobState);
+        Assert.Equal(JobState.Success, jobData.State);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class WaitAllJobsTests(ITestOutputHelper output) : IntegrationTest(output
         var duration = afterTime - beforeTime;
 
         Assert.InRange(duration, TimeSpan.FromSeconds(2), TimeSpan.MaxValue);
-        Assert.Equal(JobState.Success, noDelayJobData.JobState);
-        Assert.Equal(JobState.Success, delayedJobData.JobState);
+        Assert.Equal(JobState.Success, noDelayJobData.State);
+        Assert.Equal(JobState.Success, delayedJobData.State);
     }
 }

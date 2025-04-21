@@ -32,7 +32,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Failed, jobData.JobState);
+        Assert.Equal(JobState.Failed, jobData.State);
         Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
     }
 
@@ -47,7 +47,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
          await WaitForJobToEnd(job);
 
-         Assert.Equal(JobState.Success, jobData.JobState);
+         Assert.Equal(JobState.Success, jobData.State);
          Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
      }
 
@@ -59,9 +59,9 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
          var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(3)));
 
-         Assert.Equal(JobState.Scheduled, jobData.JobState);
+         Assert.Equal(JobState.Scheduled, jobData.State);
          Scheduler.CancelScheduledJob(jobData);
-         Assert.Equal(JobState.Cancelled, jobData.JobState);
+         Assert.Equal(JobState.Cancelled, jobData.State);
      }
 
      [Fact]
@@ -80,8 +80,8 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
          await Task.Delay(50);
 
-         Assert.Equal(JobState.Enqueued, jobToCancelData.JobState);
+         Assert.Equal(JobState.Enqueued, jobToCancelData.State);
          Scheduler.CancelScheduledJob(jobToCancelData);
-         Assert.Equal(JobState.Cancelled, jobToCancelData.JobState);
+         Assert.Equal(JobState.Cancelled, jobToCancelData.State);
      }
 }
