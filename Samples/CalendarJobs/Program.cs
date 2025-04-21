@@ -3,7 +3,7 @@ using CalendarJobs;
 
 using var scheduler = new JobScheduler();
 
-DateTime[] scheduleDateTimes =
+DateTimeOffset[] scheduleDateTimes =
 [
     DateTimeOffset.UtcNow + TimeSpan.FromSeconds(2),
     DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5),
