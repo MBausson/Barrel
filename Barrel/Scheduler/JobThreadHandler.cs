@@ -98,7 +98,7 @@ internal class JobThreadHandler : IDisposable
 
     private void JobStarted(object? _, JobFiredEventArgs e)
     {
-        var jobTask = RunJob(e.BaseJobData);
+        var jobTask = RunJobAsync(e.BaseJobData);
 
         _runningJobs[jobTask.Id] = new RunningJob(jobTask, e.BaseJobData);
 
@@ -106,7 +106,7 @@ internal class JobThreadHandler : IDisposable
         jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
     }
 
-    private async Task RunJob(BaseJobData jobData)
+    private async Task RunJobAsync(BaseJobData jobData)
     {
         //  If the job hasn't been instantiated, do it now
         if (!jobData.HasInstance())

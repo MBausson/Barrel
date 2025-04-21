@@ -11,7 +11,7 @@ public class ScheduleOptions
     public TimeSpan Delay { get; private set; }
 
     /// <summary>
-    ///     <inheritdoc cref="BaseJob.JobPriority" />
+    ///     <inheritdoc cref="Barrel.JobData.BaseJobData.Priority" />
     /// </summary>
     public JobPriority Priority { get; private set; } = JobPriority.Default;
 
