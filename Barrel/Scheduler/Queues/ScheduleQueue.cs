@@ -15,7 +15,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
 
     public void StartProcessingSchedules()
     {
-        _ = Task.Run(ProcessSchedules);
+        _ = Task.Run(ProcessSchedulesAsync);
     }
 
     public void ScheduleJob(ScheduledJobData jobData)
@@ -44,7 +44,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
-    private async Task ProcessSchedules()
+    private async Task ProcessSchedulesAsync()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {

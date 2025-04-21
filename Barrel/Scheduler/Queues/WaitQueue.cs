@@ -16,7 +16,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
 
     public void StartProcessingJobs()
     {
-        _ = Task.Run(ProcessJobs);
+        _ = Task.Run(ProcessJobsAsync);
     }
 
     public void EnqueueJob(BaseJobData jobData)
@@ -49,7 +49,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
     }
 
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
-    private async Task ProcessJobs()
+    private async Task ProcessJobsAsync()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
