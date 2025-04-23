@@ -6,7 +6,7 @@ public class CalendarScheduleOptions : ScheduleOptions
     public IReadOnlyList<DateTimeOffset> ScheduleDateTimes => _scheduleDateTimes.Values.ToArray();
 
     /// <summary>
-    /// Indicate the precise date on which a job should be executed.
+    ///     Indicate the precise date on which a job should be executed.
     /// </summary>
     /// <exception cref="ArgumentOutOfRangeException">Thrown if the date is anterior to the current date.</exception>
     public CalendarScheduleOptions WithDate(DateTimeOffset dateTime)

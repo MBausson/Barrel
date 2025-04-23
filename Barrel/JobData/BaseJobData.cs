@@ -28,15 +28,15 @@ public abstract class BaseJobData
 
     public BaseJob? Instance { get; internal set; }
 
-    public abstract DateTimeOffset NextScheduleOn();
-
     public bool ShouldRetryIndefinitely => MaxRetryAttempts == -1;
 
     public bool IsCancellable => State switch
     {
         JobState.Scheduled or JobState.Enqueued => true,
-        _ => false
+        var _ => false
     };
+
+    public abstract DateTimeOffset NextScheduleOn();
 
     internal bool HasInstance()
     {

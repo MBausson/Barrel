@@ -15,10 +15,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
         var job = new JobDataFactory().Create<ScheduledJobData, SuccessfulJob, ScheduleOptions>(new ScheduleOptions());
 
-        Assert.Throws<ImpossibleJobCancellationException>(() =>
-        {
-            Scheduler.CancelScheduledJob(job);
-        });
+        Assert.Throws<ImpossibleJobCancellationException>(() => { Scheduler.CancelScheduledJob(job); });
     }
 
     [Fact]
@@ -36,52 +33,52 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
     }
 
-     [Fact]
-     //  Ensures that a successful job cannot be cancelled
-     public async Task CancelJobSuccess_FailsTest()
-     {
-         Scheduler = new JobScheduler(ConfigurationBuilder);
+    [Fact]
+    //  Ensures that a successful job cannot be cancelled
+    public async Task CancelJobSuccess_FailsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
 
-         var job = new SuccessfulJob();
-         var jobData = Scheduler.Schedule(job);
+        var job = new SuccessfulJob();
+        var jobData = Scheduler.Schedule(job);
 
-         await WaitForJobToEnd(job);
+        await WaitForJobToEnd(job);
 
-         Assert.Equal(JobState.Success, jobData.State);
-         Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
-     }
+        Assert.Equal(JobState.Success, jobData.State);
+        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
+    }
 
-     [Fact]
-     // Ensures that a scheduled job is effectively cancelled when requested
-     public void CancelScheduledJob_SucceedsTest()
-     {
-         Scheduler = new JobScheduler(ConfigurationBuilder);
+    [Fact]
+    // Ensures that a scheduled job is effectively cancelled when requested
+    public void CancelScheduledJob_SucceedsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
 
-         var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(3)));
+        var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(3)));
 
-         Assert.Equal(JobState.Scheduled, jobData.State);
-         Scheduler.CancelScheduledJob(jobData);
-         Assert.Equal(JobState.Cancelled, jobData.State);
-     }
+        Assert.Equal(JobState.Scheduled, jobData.State);
+        Scheduler.CancelScheduledJob(jobData);
+        Assert.Equal(JobState.Cancelled, jobData.State);
+    }
 
-     [Fact]
-     // Ensures that an enqueued job is effectively cancelled when requested
-     public async Task CancelEnqueuedJob_SucceedsTest()
-     {
-         ConfigurationBuilder.WithMaxConcurrentJobs(1);
-         Scheduler = new JobScheduler(ConfigurationBuilder);
+    [Fact]
+    // Ensures that an enqueued job is effectively cancelled when requested
+    public async Task CancelEnqueuedJob_SucceedsTest()
+    {
+        ConfigurationBuilder.WithMaxConcurrentJobs(1);
+        Scheduler = new JobScheduler(ConfigurationBuilder);
 
-         var busyJob = new BusyJob(5000);
-         Scheduler.Schedule(busyJob);
+        var busyJob = new BusyJob(5000);
+        Scheduler.Schedule(busyJob);
 
-         await WaitForJobToRun(busyJob);
+        await WaitForJobToRun(busyJob);
 
-         var jobToCancelData = Scheduler.Schedule<SuccessfulJob>();
+        var jobToCancelData = Scheduler.Schedule<SuccessfulJob>();
 
-         await Task.Delay(50);
+        await Task.Delay(50);
 
-         Assert.Equal(JobState.Enqueued, jobToCancelData.State);
-         Scheduler.CancelScheduledJob(jobToCancelData);
-         Assert.Equal(JobState.Cancelled, jobToCancelData.State);
-     }
+        Assert.Equal(JobState.Enqueued, jobToCancelData.State);
+        Scheduler.CancelScheduledJob(jobToCancelData);
+        Assert.Equal(JobState.Cancelled, jobToCancelData.State);
+    }
 }

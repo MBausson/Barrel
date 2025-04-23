@@ -49,7 +49,8 @@ public class RecurrentScheduleOptionsTest
         _options.WithDelay(TimeSpan.FromSeconds(secondsDelay));
         _options.Every(TimeSpan.FromSeconds(secondsPeriodicity));
 
-        var expectedDate = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(secondsDelay) + TimeSpan.FromSeconds(secondsPeriodicity);
+        var expectedDate = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(secondsDelay) +
+                           TimeSpan.FromSeconds(secondsPeriodicity);
 
         Assert.Equal(expectedDate, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
     }

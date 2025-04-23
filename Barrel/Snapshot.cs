@@ -3,7 +3,7 @@
 namespace Barrel;
 
 /// <summary>
-/// Represents the state of the different internal queues of Barrel at a given instant.
+///     Represents the state of the different internal queues of Barrel at a given instant.
 /// </summary>
 public readonly record struct Snapshot
 {
@@ -13,11 +13,14 @@ public readonly record struct Snapshot
     public IEnumerable<ScheduledJobSnapshot> WaitingJobs { get; init; }
     public IEnumerable<ScheduledJobSnapshot> ScheduledJobs { get; init; }
 
-    public IEnumerable<ScheduledJobSnapshot> AllJobs() => WaitingJobs.Concat(ScheduledJobs);
+    public IEnumerable<ScheduledJobSnapshot> AllJobs()
+    {
+        return WaitingJobs.Concat(ScheduledJobs);
+    }
 }
 
 /// <summary>
-/// Represents the state of a scheduled job a given instant.
+///     Represents the state of a scheduled job a given instant.
 /// </summary>
 public record struct ScheduledJobSnapshot
 {

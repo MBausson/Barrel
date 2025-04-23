@@ -11,10 +11,10 @@ internal class JobThreadHandler : IDisposable
 {
     private readonly CancellationTokenSource _cancellationTokenSource;
     private readonly JobSchedulerConfiguration _configuration;
+    private readonly ConcurrentDictionary<int, RunningJob> _runningJobs;
 
     private readonly ScheduleQueue _scheduleQueue;
     private readonly WaitQueue _waitQueue;
-    private readonly ConcurrentDictionary<int, RunningJob> _runningJobs;
 
     public JobThreadHandler(JobSchedulerConfiguration configuration)
     {
@@ -80,12 +80,12 @@ internal class JobThreadHandler : IDisposable
 
     public Snapshot TakeSnapshot()
     {
-        return new()
+        return new Snapshot
         {
             SnapshotOn = DateTimeOffset.UtcNow,
             RunningJobs = _runningJobs.Select((kv, _) => ScheduledJobSnapshot.FromBaseJobData(kv.Value.JobData)),
             ScheduledJobs = _scheduleQueue.TakeSnapshot(),
-            WaitingJobs = _waitQueue.TakeSnapshot(),
+            WaitingJobs = _waitQueue.TakeSnapshot()
         };
     }
 

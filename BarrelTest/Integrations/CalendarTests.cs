@@ -7,8 +7,8 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        Assert.Throws<InvalidOperationException>(
-            () => Scheduler.ScheduleCalendar<CalendarJob>(new CalendarScheduleOptions()));
+        Assert.Throws<InvalidOperationException>(() =>
+            Scheduler.ScheduleCalendar<CalendarJob>(new CalendarScheduleOptions()));
     }
 
     [Fact]

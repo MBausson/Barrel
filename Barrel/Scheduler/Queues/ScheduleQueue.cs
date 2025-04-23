@@ -81,7 +81,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
                 //  The _queue list is sorted, thus there is no need to look further if this check fails
                 if (scheduleDateTime > dateNow) break;
 
-                jobsToEnqueue.Add(new (key: scheduleDateTime, value: jobData));
+                jobsToEnqueue.Add(new KeyValuePair<DateTimeOffset, BaseJobData>(scheduleDateTime, jobData));
             }
         }
 
