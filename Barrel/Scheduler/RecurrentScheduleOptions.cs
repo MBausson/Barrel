@@ -1,6 +1,4 @@
-﻿// ReSharper disable All
-
-namespace Barrel.Scheduler;
+﻿namespace Barrel.Scheduler;
 
 public class RecurrentScheduleOptions : ScheduleOptions
 {
@@ -14,12 +12,15 @@ public class RecurrentScheduleOptions : ScheduleOptions
     public RecurrentScheduleOptions Every(TimeSpan periodicity)
     {
         if (periodicity.TotalSeconds < 1)
-            throw new ArgumentOutOfRangeException("Periodicity must be at least one second long.");
+            throw new ArgumentOutOfRangeException($"{nameof(Periodicity)} must be at least one second long.");
 
         Periodicity = periodicity;
 
         return this;
     }
 
-    public override DateTime NextScheduleOn() => base.NextScheduleOn() + Periodicity;
+    public override DateTimeOffset NextScheduleOn()
+    {
+        return base.NextScheduleOn() + Periodicity;
+    }
 }

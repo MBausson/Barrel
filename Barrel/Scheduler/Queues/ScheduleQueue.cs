@@ -9,18 +9,18 @@ public class JobReadyEventArgs(BaseJobData jobData) : EventArgs
 
 public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellationTokenSource)
 {
-    private readonly SortedList<DateTime, BaseJobData> _queue = new();
+    private readonly SortedList<DateTimeOffset, BaseJobData> _queue = new();
     public bool IsEmpty => _queue.Count == 0;
     public event EventHandler<JobReadyEventArgs> OnJobReady = null!;
 
     public void StartProcessingSchedules()
     {
-        _ = Task.Run(ProcessSchedules);
+        _ = Task.Run(ProcessSchedulesAsync);
     }
 
     public void ScheduleJob(ScheduledJobData jobData)
     {
-        jobData.JobState = JobState.Scheduled;
+        jobData.State = JobState.Scheduled;
 
         lock (_queue)
         {
@@ -44,7 +44,7 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
-    private async Task ProcessSchedules()
+    private async Task ProcessSchedulesAsync()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
@@ -68,20 +68,20 @@ public class ScheduleQueue(int pollingRate, CancellationTokenSource cancellation
         }
     }
 
-    private List<KeyValuePair<DateTime, BaseJobData>> FindJobsToEnqueue()
+    private List<KeyValuePair<DateTimeOffset, BaseJobData>> FindJobsToEnqueue()
     {
-        List<KeyValuePair<DateTime, BaseJobData>> jobsToEnqueue = [];
+        List<KeyValuePair<DateTimeOffset, BaseJobData>> jobsToEnqueue = [];
 
         lock (_queue)
         {
-            var dateNow = DateTime.Now;
+            var dateNow = DateTimeOffset.UtcNow;
 
             foreach (var (scheduleDateTime, jobData) in _queue)
             {
                 //  The _queue list is sorted, thus there is no need to look further if this check fails
                 if (scheduleDateTime > dateNow) break;
 
-                jobsToEnqueue.Add(new KeyValuePair<DateTime, BaseJobData>(scheduleDateTime, jobData));
+                jobsToEnqueue.Add(new KeyValuePair<DateTimeOffset, BaseJobData>(scheduleDateTime, jobData));
             }
         }
 

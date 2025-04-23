@@ -6,9 +6,9 @@ public class ScheduledJobData : BaseJobData
     {
     }
 
-    public virtual DateTime EnqueuedOn { get; internal set; }
+    public DateTimeOffset EnqueuedOn { get; internal set; }
 
-    public override DateTime NextScheduleOn()
+    public override DateTimeOffset NextScheduleOn()
     {
         return EnqueuedOn;
     }

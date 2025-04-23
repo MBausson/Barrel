@@ -2,12 +2,16 @@
 
 public class CalendarScheduleOptions : ScheduleOptions
 {
-    private readonly SortedList<DateTime, DateTime> _scheduleDateTimes = new();
-    public IReadOnlyList<DateTime> ScheduleDateTimes => _scheduleDateTimes.Values.ToArray();
+    private readonly SortedList<DateTimeOffset, DateTimeOffset> _scheduleDateTimes = new();
+    public IReadOnlyList<DateTimeOffset> ScheduleDateTimes => _scheduleDateTimes.Values.ToArray();
 
-    public CalendarScheduleOptions WithDate(DateTime dateTime)
+    /// <summary>
+    ///     Indicate the precise date on which a job should be executed.
+    /// </summary>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown if the date is anterior to the current date.</exception>
+    public CalendarScheduleOptions WithDate(DateTimeOffset dateTime)
     {
-        if (DateTime.Now > dateTime)
+        if (DateTimeOffset.UtcNow > dateTime)
             throw new ArgumentOutOfRangeException($"Datetime {dateTime} is anterior to the current date");
 
         _scheduleDateTimes.Add(dateTime, dateTime);
@@ -15,14 +19,15 @@ public class CalendarScheduleOptions : ScheduleOptions
         return this;
     }
 
-    public CalendarScheduleOptions WithDates(params DateTime[] dateTimes)
+    /// <inheritdoc cref="WithDate" />
+    public CalendarScheduleOptions WithDates(params DateTimeOffset[] dateTimes)
     {
         foreach (var dateTime in dateTimes) WithDate(dateTime);
 
         return this;
     }
 
-    public override DateTime NextScheduleOn()
+    public override DateTimeOffset NextScheduleOn()
     {
         return _scheduleDateTimes.First().Value;
     }

@@ -3,11 +3,11 @@ using CalendarJobs;
 
 using var scheduler = new JobScheduler();
 
-DateTime[] scheduleDateTimes =
+DateTimeOffset[] scheduleDateTimes =
 [
-    DateTime.Now + TimeSpan.FromSeconds(2),
-    DateTime.Now + TimeSpan.FromSeconds(5),
-    DateTime.Now + TimeSpan.FromSeconds(10)
+    DateTimeOffset.UtcNow + TimeSpan.FromSeconds(2),
+    DateTimeOffset.UtcNow + TimeSpan.FromSeconds(5),
+    DateTimeOffset.UtcNow + TimeSpan.FromSeconds(10)
 ];
 
 //  Schedules 3 jobs that will respectively be executed 2, 5 and 10 seconds from now.

@@ -11,15 +11,15 @@ namespace BarrelTest.Integrations;
 public class IntegrationTest : XunitContextBase, IDisposable
 {
     protected readonly int JobWaitTimeout = 5000;
-    protected readonly ITestOutputHelper Output;
+    protected new readonly ITestOutputHelper Output;
     protected JobSchedulerConfigurationBuilder ConfigurationBuilder = new();
     protected JobScheduler? Scheduler;
 
     public IntegrationTest(ITestOutputHelper output) : base(output)
     {
         ConfigurationBuilder = ConfigurationBuilder
-            .WithQueuePollingRate(0)
-            .WithSchedulePollingRate(0);
+            .WithQueuePollingRate(20)
+            .WithSchedulePollingRate(20);
 
         Output = output;
     }
@@ -38,7 +38,7 @@ public class IntegrationTest : XunitContextBase, IDisposable
     {
         await Task.WhenAny(Task.Run(async () =>
         {
-            while (jobData.JobState != JobState.Running) await Task.Delay(5);
+            while (jobData.State != JobState.Running) await Task.Delay(5);
         }), Task.Delay(JobWaitTimeout));
     }
 

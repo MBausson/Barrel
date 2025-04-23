@@ -7,8 +7,8 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        Assert.Throws<InvalidOperationException>(
-            () => Scheduler.ScheduleCalendar<CalendarJob>(new CalendarScheduleOptions()));
+        Assert.Throws<InvalidOperationException>(() =>
+            Scheduler.ScheduleCalendar<CalendarJob>(new CalendarScheduleOptions()));
     }
 
     [Fact]
@@ -16,11 +16,11 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
-        DateTime[] executionDates =
+        DateTimeOffset[] executionDates =
         [
-            DateTime.Now + TimeSpan.FromMilliseconds(1000),
-            DateTime.Now + TimeSpan.FromMilliseconds(1500),
-            DateTime.Now + TimeSpan.FromMilliseconds(2000)
+            DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(1000),
+            DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(1500),
+            DateTimeOffset.UtcNow + TimeSpan.FromMilliseconds(2000)
         ];
 
         Scheduler.ScheduleCalendar<CalendarJob>(new CalendarScheduleOptions()
@@ -44,13 +44,13 @@ public class CalendarTests(ITestOutputHelper output) : IntegrationTest(output)
     {
         public static readonly TaskCompletionSource<bool> JobsFinishedSource = new();
 
-        private static readonly List<DateTime> ExecutionDates = new();
-        public static IReadOnlyList<DateTime> ExecutionDateTimes => ExecutionDates;
+        private static readonly List<DateTimeOffset> ExecutionDates = new();
+        public static IReadOnlyList<DateTimeOffset> ExecutionDateTimes => ExecutionDates;
         public static int ExecutionsCount => ExecutionDateTimes.Count;
 
         protected override Task PerformAsync()
         {
-            ExecutionDates.Add(DateTime.Now);
+            ExecutionDates.Add(DateTimeOffset.UtcNow);
 
             if (ExecutionsCount == 3) JobsFinishedSource.SetResult(true);
 

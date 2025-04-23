@@ -16,7 +16,7 @@ public class RetryTests
             await WaitForJobToEnd(job);
 
             Assert.Equal(0, jobData.RetryAttempts);
-            Assert.Equal(JobState.Success, jobData.JobState);
+            Assert.Equal(JobState.Success, jobData.State);
         }
 
         //  Ensures that a job that keeps failing is retried as much as permitted
@@ -31,7 +31,7 @@ public class RetryTests
             await WaitForJobToEnd(job);
 
             Assert.Equal(3, jobData.RetryAttempts);
-            Assert.Equal(JobState.Failed, jobData.JobState);
+            Assert.Equal(JobState.Failed, jobData.State);
         }
     }
 }

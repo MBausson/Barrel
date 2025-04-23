@@ -19,7 +19,7 @@ public class DelayTests : IntegrationTest
         var jobData = Scheduler.Schedule(job);
         await WaitForJobToEnd(job);
 
-        Assert.Equal(JobState.Success, jobData.JobState);
+        Assert.Equal(JobState.Success, jobData.State);
     }
 
     [Fact]
@@ -28,13 +28,13 @@ public class DelayTests : IntegrationTest
         Scheduler = new JobScheduler(ConfigurationBuilder);
         var job = new SuccessfulJob();
 
-        var beforeScheduleTime = DateTime.Now;
+        var beforeScheduleTime = DateTimeOffset.UtcNow;
 
-        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
+        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromMilliseconds(500)));
         await WaitForJobToEnd(job);
 
-        var afterScheduleTime = DateTime.Now;
+        var afterScheduleTime = DateTimeOffset.UtcNow;
 
-        Assert.InRange(afterScheduleTime - beforeScheduleTime, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
+        Assert.InRange(afterScheduleTime - beforeScheduleTime, TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(2));
     }
 }

@@ -26,10 +26,7 @@ public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
 
         var performed = false;
 
-        var jobData = Scheduler.Schedule(() =>
-        {
-            performed = true;
-        });
+        var jobData = Scheduler.Schedule(() => { performed = true; });
 
         await WaitForNonInstancedJobToRun(jobData);
 
@@ -52,7 +49,6 @@ public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
         {
             PerformExecuted = true;
 
-            _ = Task.Delay(150).ContinueWith(_ => JobFinishedSource.SetResult(true));
             return Task.CompletedTask;
         }
     }

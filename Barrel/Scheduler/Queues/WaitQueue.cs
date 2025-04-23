@@ -16,7 +16,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
 
     public void StartProcessingJobs()
     {
-        _ = Task.Run(ProcessJobs);
+        _ = Task.Run(ProcessJobsAsync);
     }
 
     public void EnqueueJob(BaseJobData jobData)
@@ -26,7 +26,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
             _queue.Add(jobData);
         }
 
-        jobData.JobState = JobState.Enqueued;
+        jobData.State = JobState.Enqueued;
     }
 
     public bool DequeueJob(BaseJobData jobData)
@@ -49,7 +49,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
     }
 
     //  Responsible for launching jobs as soon as the number of concurrent jobs is not exceeding its maximum
-    private async Task ProcessJobs()
+    private async Task ProcessJobsAsync()
     {
         while (!cancellationTokenSource.Token.IsCancellationRequested)
         {
@@ -61,7 +61,7 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
 
             await _semaphore.WaitAsync(cancellationTokenSource.Token);
 
-            jobData.JobState = JobState.Running;
+            jobData.State = JobState.Running;
 
             OnJobFired?.Invoke(this, new JobFiredEventArgs(jobData));
 
@@ -83,11 +83,11 @@ internal class WaitQueue(int pollingRate, int maxConcurrentJobs, CancellationTok
         for (var i = 1; i < _queue.Count; i++)
         {
             //  No need to search for jobs with higher priority if we're already on a High priority
-            if (job.JobPriority == JobPriority.High) break;
+            if (job.Priority == JobPriority.High) break;
 
             var nextJob = _queue[i];
 
-            if (nextJob.JobPriority > job.JobPriority) job = nextJob;
+            if (nextJob.Priority > job.Priority) job = nextJob;
         }
 
         return true;

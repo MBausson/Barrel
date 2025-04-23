@@ -42,11 +42,13 @@ public class JobScheduler : IDisposable
 
         if (success)
         {
-            job.JobState = JobState.Cancelled;
-            _configuration.Logger.LogInformation($"Un-scheduled job {job.JobId}");
+            job.State = JobState.Cancelled;
+            _configuration.Logger.LogInformation($"Un-scheduled job {job.Id}");
         }
         else
-            _configuration.Logger.LogInformation($"Could not un-schedule job {job.JobId}");
+        {
+            _configuration.Logger.LogInformation($"Could not un-schedule job {job.Id}");
+        }
 
         return success;
     }
@@ -104,10 +106,13 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
-    /// Schedules an anonymous job to run without delay.
+    ///     Schedules an anonymous job to run without delay.
     /// </summary>
     /// <param name="actionJob">The action the job will be running</param>
-    public ScheduledJobData Schedule(Action actionJob) => Schedule(new AnonymousJob(actionJob));
+    public ScheduledJobData Schedule(Action actionJob)
+    {
+        return Schedule(new AnonymousJob(actionJob));
+    }
 
     /// <summary>
     ///     Schedules a job to run with specified options.
@@ -122,12 +127,14 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
-    /// Schedules an anonymous job to run with specified options.
+    ///     Schedules an anonymous job to run with specified options.
     /// </summary>
     /// <param name="actionJob">The action the job will be running</param>
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
-    public ScheduledJobData Schedule(Action actionJob, ScheduleOptions options) =>
-        Schedule(new AnonymousJob(actionJob), options);
+    public ScheduledJobData Schedule(Action actionJob, ScheduleOptions options)
+    {
+        return Schedule(new AnonymousJob(actionJob), options);
+    }
 
     /// <summary>
     ///     Schedules a job to run with a specified delay.
@@ -152,10 +159,13 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
-    /// Gives information at a given time, about the state of the different internal queues (scheduled, waiting and
-    /// running job queues).
+    ///     Gives information at a given time, about the state of the different internal queues (scheduled, waiting and
+    ///     running job queues).
     /// </summary>
-    public Snapshot TakeSnapshot() => _threadHandler.TakeSnapshot();
+    public Snapshot TakeSnapshot()
+    {
+        return _threadHandler.TakeSnapshot();
+    }
 
     private ScheduledJobData ScheduleFromJobData(ScheduledJobData jobData)
     {

@@ -78,7 +78,7 @@ public class ScheduleOptionsTests
     [Fact]
     public void NextScheduleOn_NoDelayTest()
     {
-        Assert.Equal(DateTime.Now, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
+        Assert.Equal(DateTimeOffset.UtcNow, _options.NextScheduleOn(), TimeSpan.FromMilliseconds(999));
     }
 
     //  Ensures that NextScheduleOn returns the valid datetime when delay is applied
@@ -89,7 +89,7 @@ public class ScheduleOptionsTests
 
         _options.WithDelay(TimeSpan.FromSeconds(secondsDelay));
 
-        Assert.Equal(DateTime.Now + TimeSpan.FromSeconds(secondsDelay), _options.NextScheduleOn(),
+        Assert.Equal(DateTimeOffset.UtcNow + TimeSpan.FromSeconds(secondsDelay), _options.NextScheduleOn(),
             TimeSpan.FromMilliseconds(999));
     }
 }

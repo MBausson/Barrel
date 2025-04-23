@@ -11,7 +11,7 @@ public class ScheduleOptions
     public TimeSpan Delay { get; private set; }
 
     /// <summary>
-    ///     <inheritdoc cref="BaseJob.JobPriority" />
+    ///     <inheritdoc cref="Barrel.JobData.BaseJobData.Priority" />
     /// </summary>
     public JobPriority Priority { get; private set; } = JobPriority.Default;
 
@@ -36,7 +36,7 @@ public class ScheduleOptions
 
     /// <summary>
     ///     <para>Creates a new ScheduleOptions with a priority. </para>
-    ///     <inheritdoc cref="BaseJob.JobPriority" />
+    ///     <inheritdoc cref="Barrel.JobData.BaseJobData.Priority" />
     /// </summary>
     public static ScheduleOptions FromPriority(JobPriority priority)
     {
@@ -54,7 +54,7 @@ public class ScheduleOptions
     }
 
     /// <summary>
-    ///     <inheritdoc cref="BaseJob.JobPriority" />
+    ///     <inheritdoc cref="Barrel.JobData.BaseJobData.Priority" />
     /// </summary>
     public ScheduleOptions WithPriority(JobPriority priority)
     {
@@ -75,8 +75,8 @@ public class ScheduleOptions
         return this;
     }
 
-    public virtual DateTime NextScheduleOn()
+    public virtual DateTimeOffset NextScheduleOn()
     {
-        return DateTime.Now + Delay;
+        return DateTime.UtcNow + Delay;
     }
 }
