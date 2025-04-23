@@ -30,11 +30,11 @@ public class DelayTests : IntegrationTest
 
         var beforeScheduleTime = DateTimeOffset.UtcNow;
 
-        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(1)));
+        Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromMilliseconds(500)));
         await WaitForJobToEnd(job);
 
         var afterScheduleTime = DateTimeOffset.UtcNow;
 
-        Assert.InRange(afterScheduleTime - beforeScheduleTime, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(10));
+        Assert.InRange(afterScheduleTime - beforeScheduleTime, TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(2));
     }
 }

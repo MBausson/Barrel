@@ -52,7 +52,6 @@ public class PerformTests(ITestOutputHelper output) : IntegrationTest(output)
         {
             PerformExecuted = true;
 
-            _ = Task.Delay(150).ContinueWith(_ => JobFinishedSource.SetResult(true));
             return Task.CompletedTask;
         }
     }
