@@ -33,7 +33,14 @@ public class JobScheduler : IDisposable
         _configuration.Logger.LogDebug($"{nameof(JobScheduler)} disposed");
     }
 
-    public bool CancelScheduledJob(ScheduledJobData job)
+    /// <summary>
+    /// Cancels a scheduled or an enqueued job
+    /// </summary>
+    /// <param name="job">The job's JobData to cancel</param>
+    /// <returns>A boolean value indicating if the cancellation has been successful</returns>
+    /// <exception cref="ImpossibleJobCancellationException">Thrown when the job's state does not permit the
+    /// cancellation. The job is either running or has finished its execution.</exception>
+    public bool CancelJob(ScheduledJobData job)
     {
         if (!job.IsCancellable)
             throw new ImpossibleJobCancellationException(job);

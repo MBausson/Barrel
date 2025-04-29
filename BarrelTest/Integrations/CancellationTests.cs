@@ -15,7 +15,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
         var job = new JobDataFactory().Create<ScheduledJobData, SuccessfulJob, ScheduleOptions>(new ScheduleOptions());
 
-        Assert.Throws<ImpossibleJobCancellationException>(() => { Scheduler.CancelScheduledJob(job); });
+        Assert.Throws<ImpossibleJobCancellationException>(() => { Scheduler.CancelJob(job); });
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         await WaitForJobToEnd(job);
 
         Assert.Equal(JobState.Failed, jobData.State);
-        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
+        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelJob(jobData));
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         await WaitForJobToEnd(job);
 
         Assert.Equal(JobState.Success, jobData.State);
-        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelScheduledJob(jobData));
+        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelJob(jobData));
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(3)));
 
         Assert.Equal(JobState.Scheduled, jobData.State);
-        Scheduler.CancelScheduledJob(jobData);
+        Scheduler.CancelJob(jobData);
         Assert.Equal(JobState.Cancelled, jobData.State);
     }
 
@@ -78,7 +78,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         await Task.Delay(50);
 
         Assert.Equal(JobState.Enqueued, jobToCancelData.State);
-        Scheduler.CancelScheduledJob(jobToCancelData);
+        Scheduler.CancelJob(jobToCancelData);
         Assert.Equal(JobState.Cancelled, jobToCancelData.State);
     }
 }
