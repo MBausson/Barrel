@@ -38,12 +38,12 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <param name="job">The job's JobData to cancel</param>
     /// <returns>A boolean value indicating if the cancellation has been successful</returns>
-    /// <exception cref="ImpossibleJobCancellationException">Thrown when the job's state does not permit the
+    /// <exception cref="JobOperationNotPermitted">Thrown when the job's state does not permit the
     /// cancellation. The job is either running or has finished its execution.</exception>
     public bool CancelJob(ScheduledJobData job)
     {
-        if (!job.IsCancellable)
-            throw new ImpossibleJobCancellationException(job);
+        if (!job.CanReceiveOperation)
+            throw new JobOperationNotPermitted(job);
 
         var success = _threadHandler.CancelJob(job);
 
@@ -60,11 +60,23 @@ public class JobScheduler : IDisposable
         return success;
     }
 
+    public void PerformNow(ScheduledJobData job)
+    {
+        if (!job.CanReceiveOperation)
+            throw new JobOperationNotPermitted(job);
+
+        var success = _threadHandler.PerformNow(job);
+
+        _configuration.Logger.LogInformation(success
+            ? $"Successfully performed now job {job.Id}"
+            : $"Could not perform now job {job.Id}");
+    }
+
     /// <summary>
     ///     Schedule a recurrent job to be executed every X delay
     /// </summary>
     /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
-    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
+    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>PerformNow</c> method</typeparam>
     public RecurrentJobData ScheduleRecurrent<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
     {
         EnsureJobInstantiation<TJob>();
@@ -79,7 +91,7 @@ public class JobScheduler : IDisposable
     ///     Schedule a recurrent job to be on a precise date
     /// </summary>
     /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
-    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
+    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>PerformNow</c> method</typeparam>
     public IEnumerable<ScheduledJobData> ScheduleCalendar<TJob>(CalendarScheduleOptions options)
         where TJob : BaseJob, new()
     {
@@ -97,7 +109,7 @@ public class JobScheduler : IDisposable
     /// <summary>
     ///     Schedules a job to run with no delay.
     /// </summary>
-    /// <typeparam name="TJob">The <c>BaseJob</c> sub-class implementing the <c>Perform</c> method</typeparam>
+    /// <typeparam name="TJob">The <c>BaseJob</c> sub-class implementing the <c>PerformNow</c> method</typeparam>
     public ScheduledJobData Schedule<TJob>() where TJob : BaseJob
     {
         return Schedule<TJob>(ScheduleOptions.Default);
@@ -106,7 +118,7 @@ public class JobScheduler : IDisposable
     /// <summary>
     ///     Schedules a job to run with no delay.
     /// </summary>
-    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
+    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>PerformNow</c> method</param>
     public ScheduledJobData Schedule<TJob>(TJob job) where TJob : BaseJob
     {
         return Schedule(job, ScheduleOptions.Default);
@@ -124,7 +136,7 @@ public class JobScheduler : IDisposable
     /// <summary>
     ///     Schedules a job to run with specified options.
     /// </summary>
-    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</param>
+    /// <param name="job">The <c>BaseJob</c> subclass implementing the <c>PerformNow</c> method</param>
     /// <param name="options">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
     public ScheduledJobData Schedule<TJob>(TJob job, ScheduleOptions options) where TJob : BaseJob
     {
@@ -147,7 +159,7 @@ public class JobScheduler : IDisposable
     ///     Schedules a job to run with a specified delay.
     /// </summary>
     /// <param name="delay">Describes to the Scheduler how should the job be handled (delay, priority...)</param>
-    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
+    /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>PerformNow</c> method</typeparam>
     public ScheduledJobData Schedule<TJob>(ScheduleOptions options) where TJob : BaseJob
     {
         EnsureJobInstantiation<TJob>();

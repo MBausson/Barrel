@@ -15,7 +15,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
 
         var job = new JobDataFactory().Create<ScheduledJobData, SuccessfulJob, ScheduleOptions>(new ScheduleOptions());
 
-        Assert.Throws<ImpossibleJobCancellationException>(() => { Scheduler.CancelJob(job); });
+        Assert.Throws<JobOperationNotPermitted>(() => { Scheduler.CancelJob(job); });
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         await WaitForJobToEnd(job);
 
         Assert.Equal(JobState.Failed, jobData.State);
-        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelJob(jobData));
+        Assert.Throws<JobOperationNotPermitted>(() => Scheduler.CancelJob(jobData));
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         await WaitForJobToEnd(job);
 
         Assert.Equal(JobState.Success, jobData.State);
-        Assert.Throws<ImpossibleJobCancellationException>(() => Scheduler.CancelJob(jobData));
+        Assert.Throws<JobOperationNotPermitted>(() => Scheduler.CancelJob(jobData));
     }
 
     [Fact]

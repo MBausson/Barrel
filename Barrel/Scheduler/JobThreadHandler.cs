@@ -78,6 +78,16 @@ internal class JobThreadHandler : IDisposable
         return _waitQueue.DequeueJob(jobData);
     }
 
+    public bool PerformNow(ScheduledJobData jobData)
+    {
+        var success = CancelJob(jobData);
+        if (!success) return false;
+
+        StartJob(jobData);
+
+        return true;
+    }
+
     public Snapshot TakeSnapshot()
     {
         return new Snapshot
@@ -96,11 +106,13 @@ internal class JobThreadHandler : IDisposable
         _configuration.Logger.LogDebug($"Enqueued job {eventArgs.JobData.Id}");
     }
 
-    private void JobStarted(object? _, JobFiredEventArgs e)
-    {
-        var jobTask = RunJobAsync(e.BaseJobData);
+    private void JobStarted(object? _, JobFiredEventArgs e) => StartJob(e.BaseJobData);
 
-        _runningJobs[jobTask.Id] = new RunningJob(jobTask, e.BaseJobData);
+    private void StartJob(BaseJobData jobData)
+    {
+        var jobTask = RunJobAsync(jobData);
+
+        _runningJobs[jobTask.Id] = new RunningJob(jobTask, jobData);
 
         //  Removes the job from the running queue after it is completed
         jobTask.ContinueWith(_ => { _runningJobs.Remove(jobTask.Id, out var _); });
