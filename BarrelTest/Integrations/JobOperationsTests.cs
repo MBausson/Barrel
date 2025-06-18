@@ -1,10 +1,11 @@
-﻿using Barrel.Exceptions;
+﻿using System.Reflection.PortableExecutable;
+using Barrel.Exceptions;
 using Barrel.JobData;
 using Barrel.JobData.Factory;
 
 namespace BarrelTest.Integrations;
 
-public class CancellationTests(ITestOutputHelper output) : IntegrationTest(output)
+public class JobOperationsTests(ITestOutputHelper output) : IntegrationTest(output)
 {
     [Fact]
     //  Ensures that a job that has a NotStarted status cannot be cancelled
@@ -80,5 +81,60 @@ public class CancellationTests(ITestOutputHelper output) : IntegrationTest(outpu
         Assert.Equal(JobState.Enqueued, jobToCancelData.State);
         Scheduler.CancelJob(jobToCancelData);
         Assert.Equal(JobState.Cancelled, jobToCancelData.State);
+    }
+
+    [Fact]
+    public void PerformNowJobNotStarted_FailsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var job = new JobDataFactory().Create<ScheduledJobData, SuccessfulJob, ScheduleOptions>(new ScheduleOptions());
+
+        Assert.Throws<JobOperationNotPermitted>(() => { Scheduler.PerformNow(job); });
+    }
+
+    [Fact]
+    //  Ensures that a failing job cannot be cancelled
+    public async Task PerformNowJobFailed_FailsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var job = new FailedJob();
+        var jobData = Scheduler.Schedule(job);
+
+        await WaitForJobToEnd(job);
+
+        Assert.Equal(JobState.Failed, jobData.State);
+        Assert.Throws<JobOperationNotPermitted>(() => Scheduler.PerformNow(jobData));
+    }
+
+    [Fact]
+    //  Ensures that a successful job cannot be performed now
+    public async Task PerformNowJobSuccess_FailsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var job = new SuccessfulJob();
+        var jobData = Scheduler.Schedule(job);
+
+        await WaitForJobToEnd(job);
+
+        Assert.Equal(JobState.Success, jobData.State);
+        Assert.Throws<JobOperationNotPermitted>(() => Scheduler.PerformNow(jobData));
+    }
+
+    [Fact]
+    // Ensures that a scheduled job is effectively performed now when requested
+    public async Task PerformNowScheduledJob_SucceedsTest()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(40)));
+
+        Assert.Equal(JobState.Scheduled, jobData.State);
+        Scheduler.PerformNow(jobData);
+
+        await Scheduler.WaitAllJobsAsync();
+        Assert.Equal(JobState.Success, jobData.State);
     }
 }
