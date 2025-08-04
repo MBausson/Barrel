@@ -24,11 +24,14 @@ public class SnapshotTests(ITestOutputHelper output) : IntegrationTest(output)
         Scheduler = new JobScheduler(ConfigurationBuilder);
 
         var busyJob = new BusyJob(5000);
-        Scheduler.Schedule(busyJob);
 
+        Scheduler.Schedule(busyJob);
         Scheduler.Schedule<SuccessfulJob>();
 
         await WaitForJobToRun(busyJob);
+
+        //  Flaky test fix :/
+        await Task.Delay(150);
 
         var waitingJobs = Scheduler.TakeSnapshot().WaitingJobs.ToArray();
         Assert.Single(waitingJobs);

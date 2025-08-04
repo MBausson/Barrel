@@ -36,6 +36,12 @@ public abstract class BaseJobData
         var _ => false
     };
 
+    /// <summary>
+    /// Indicates wether or not a job is stopped
+    /// <remarks>Failed and cancelled jobs are considered as stopped</remarks>
+    /// </summary>
+    public bool IsStopped => State is JobState.Cancelled or JobState.Failed or JobState.Success;
+
     public abstract DateTimeOffset NextScheduleOn();
 
     internal bool HasInstance()
