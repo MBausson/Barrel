@@ -44,6 +44,31 @@ public class WaitJobTests(ITestOutputHelper output) : IntegrationTest(output)
     }
 
     [Fact]
+    //  The wait method should end right after we dispose the scheduler
+    public async Task WaitJob_SchedulerDisposed()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var beforeTime = DateTimeOffset.UtcNow;
+        var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(5)));
+
+        //  We dispose on another thread due to the blocking behaviour of .WaitJob
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(500);
+            Scheduler.Dispose();
+        });
+
+        await Scheduler.WaitJobAsync(jobData);
+
+        var afterTime = DateTimeOffset.UtcNow;
+        var duration = afterTime - beforeTime;
+
+        Assert.False(jobData.IsStopped);
+        Assert.InRange(duration, TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1));
+    }
+
+    [Fact]
     //  If no jobs have been scheduled, we shouldn't be waiting too long
     public async Task WaitAllJobs_WithNoJobs()
     {
@@ -99,5 +124,30 @@ public class WaitJobTests(ITestOutputHelper output) : IntegrationTest(output)
         Assert.InRange(duration, TimeSpan.FromSeconds(2), TimeSpan.MaxValue);
         Assert.Equal(JobState.Success, noDelayJobData.State);
         Assert.Equal(JobState.Success, delayedJobData.State);
+    }
+
+    [Fact]
+    //  The wait method should end right after we dispose the scheduler
+    public async Task WaitAllJobs_SchedulerDisposed()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var beforeTime = DateTimeOffset.UtcNow;
+        var jobData = Scheduler.Schedule<SuccessfulJob>(ScheduleOptions.FromDelay(TimeSpan.FromSeconds(5)));
+
+        //  We dispose on another thread due to the blocking behaviour of .WaitJob
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(500);
+            Scheduler.Dispose();
+        });
+
+        await Scheduler.WaitAllJobsAsync();
+
+        var afterTime = DateTimeOffset.UtcNow;
+        var duration = afterTime - beforeTime;
+
+        Assert.False(jobData.IsStopped);
+        Assert.InRange(duration, TimeSpan.FromMilliseconds(500), TimeSpan.FromSeconds(1));
     }
 }
