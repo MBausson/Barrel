@@ -157,6 +157,14 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
+    /// Blocking method that waits for a specific job to end
+    /// </summary>
+    public async Task WaitJobAsync(BaseJobData jobData, int pollingRate = 50)
+    {
+        while (!_threadHandler.IsDisposed && !jobData.IsStopped) await Task.Delay(pollingRate);
+    }
+
+    /// <summary>
     ///     Blocking method that waits for all scheduled, enqueued and running jobs to end.
     ///     <remarks>This method does not restrict the schedule of new jobs after it was called</remarks>
     /// </summary>
