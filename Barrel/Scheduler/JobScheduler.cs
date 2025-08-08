@@ -60,6 +60,10 @@ public class JobScheduler : IDisposable
         return success;
     }
 
+    /// <summary>
+    /// Forces the execution of a job, bypassing any initial delay
+    /// </summary>
+    /// <exception cref="JobOperationNotPermitted">Thrown if the job cannot be immediately executed</exception>
     public void PerformNow(ScheduledJobData job)
     {
         if (!job.CanReceiveOperation)
