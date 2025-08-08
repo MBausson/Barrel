@@ -40,6 +40,7 @@ Here's a non-exhaustive list of the features present in Barrel:
 - Job instantiation via dependency injection (example in `Samples/DependencyInjection`)
 - Job instantiation via an argument-less constructor (constructor with 0 parameters, or with parameters having default values)
 - Prioritized job queue (`high`, `medium`, `low`)
+- Force the execution of a scheduled job
 - Job retry on fail, with a limit of retry attempts
 - Recurrent jobs that are executed every X delay
 - Calendar jobs that are executed on a very particular date
