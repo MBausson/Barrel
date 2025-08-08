@@ -1,4 +1,6 @@
-﻿namespace BarrelTest.Integrations;
+﻿using Barrel.Exceptions;
+
+namespace BarrelTest.Integrations;
 
 public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
 {
@@ -118,6 +120,44 @@ public class PriorityTests(ITestOutputHelper output) : IntegrationTest(output)
 
         //  Asserts that secondMediumJob has been executed before lowJob
         Assert.True(highJob.ExecutedOn < lowJob.ExecutedOn);
+    }
+
+    //  Ensures a job gets executed immediately when using .PerformNow
+    [Fact]
+    public async Task PerformNow_ExecutesJobImmediately()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var job = new SuccessfulJob();
+
+        var beforeTime = DateTimeOffset.Now;
+        var jobData = Scheduler.Schedule(job, ScheduleOptions.FromDelay(TimeSpan.FromSeconds(20)));
+
+        Scheduler.PerformNow(jobData);
+
+        await WaitForJobToEnd(job);
+        var endTime = DateTimeOffset.Now;
+
+        Assert.InRange(endTime - beforeTime, TimeSpan.Zero, TimeSpan.FromSeconds(2));
+        Assert.Equal(JobState.Success, jobData.State);
+    }
+
+    //  Ensures an exception is thrown if we try to force the execution of a stopped job
+    [Fact]
+    public async Task PerformNow_ThrowsException()
+    {
+        Scheduler = new JobScheduler(ConfigurationBuilder);
+
+        var job = new SuccessfulJob();
+        var jobData = Scheduler.Schedule(job);
+
+        await WaitForJobToEnd(job);
+
+        Assert.Equal(JobState.Success, jobData.State);
+        Assert.Throws<JobOperationNotPermitted>(() =>
+        {
+            Scheduler.PerformNow(jobData);
+        });
     }
 
     private class PriorityJob : BaseJob
