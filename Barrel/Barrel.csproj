@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <PackageId>Mbausson.Barrel</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Maximilien Bausson</Authors>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <RepositoryUrl>https://github.com/mbausson/barrel</RepositoryUrl>
         <TargetFramework>net9.0</TargetFramework>
         <LangVersion>latestmajor</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
