@@ -30,7 +30,7 @@ public abstract class BaseJobData
 
     public bool ShouldRetryIndefinitely => MaxRetryAttempts == -1;
 
-    public bool IsCancellable => State switch
+    public bool CanReceiveOperation => State switch
     {
         JobState.Scheduled or JobState.Enqueued => true,
         var _ => false
