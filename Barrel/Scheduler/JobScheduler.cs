@@ -65,7 +65,7 @@ public class JobScheduler : IDisposable
     /// </summary>
     /// <remarks>The job must be instantiated either via an argument-less constructor or via dependency injection</remarks>
     /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
-    public RecurrentJobData ScheduleRecurrent<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob, new()
+    public RecurrentJobData ScheduleRecurrent<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob
     {
         EnsureJobInstantiation<TJob>();
 

@@ -16,7 +16,7 @@ using var scheduler = new JobScheduler(new JobSchedulerConfigurationBuilder()
     .WithDependencyInjection(serviceProvider));
 
 //  If we do not pass a SimpleJob instance, Barrel will try to create one with DI
-scheduler.Schedule<SimpleJob>();
+scheduler.ScheduleRecurrent<SimpleJob>(new RecurrentScheduleOptions().Every(TimeSpan.FromSeconds(5)));
 
 await scheduler.WaitAllJobsAsync();
 
