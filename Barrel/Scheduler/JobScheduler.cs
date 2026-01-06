@@ -67,7 +67,8 @@ public class JobScheduler : IDisposable
     /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     public RecurrentJobData ScheduleRecurrent<TJob>(RecurrentScheduleOptions options) where TJob : BaseJob
     {
-        EnsureJobInstantiation<TJob>();
+        if (_configuration.ServiceProvider is null)
+            EnsureJobInstantiation<TJob>();
 
         var jobData = new JobDataFactory().Create<RecurrentJobData, TJob, RecurrentScheduleOptions>(options);
         _threadHandler.ScheduleRecurrentJob(jobData);
@@ -86,7 +87,8 @@ public class JobScheduler : IDisposable
         if (options.ScheduleDateTimes.Count == 0)
             throw new InvalidOperationException("No date have been specified for this schedule.");
 
-        EnsureJobInstantiation<TJob>();
+        if (_configuration.ServiceProvider is null)
+            EnsureJobInstantiation<TJob>();
 
         var calendarJobData = new JobDataFactory().Create<CalendarJobData, TJob, CalendarScheduleOptions>(options);
         foreach (var jobData in calendarJobData.ScheduledJobs) _threadHandler.ScheduleJob(jobData);
@@ -150,7 +152,9 @@ public class JobScheduler : IDisposable
     /// <typeparam name="TJob">The <c>BaseJob</c> subclass implementing the <c>Perform</c> method</typeparam>
     public ScheduledJobData Schedule<TJob>(ScheduleOptions options) where TJob : BaseJob
     {
-        EnsureJobInstantiation<TJob>();
+        if (_configuration.ServiceProvider is null)
+            EnsureJobInstantiation<TJob>();
+        
         var jobData = new JobDataFactory().Create<ScheduledJobData, TJob, ScheduleOptions>(options);
 
         return ScheduleFromJobData(jobData);
@@ -190,7 +194,7 @@ public class JobScheduler : IDisposable
     }
 
     /// <summary>
-    ///     Ensures that a job class can be instantiated via DI or an argument-less constructor.
+    ///     Ensures that a job class can be instantiated via an argument-less constructor.
     ///     <exception cref="ImpossibleJobInstantiationException{TJob}">Thrown when a job cannot be instantiated.</exception>
     /// </summary>
     private void EnsureJobInstantiation<TJob>() where TJob : BaseJob
@@ -204,23 +208,12 @@ public class JobScheduler : IDisposable
             return;
         }
 
-        if (ArgumentLessConstructorChecker.HasArgumentLessConstructor(typeof(TJob)))
+        if (ArgumentLessConstructorChecker.HasArgumentLessConstructor(type))
         {
             _instantiableCache[type] = true;
             return;
         }
 
-        //  No argument-less constructor here, but DI might help
-        if (_configuration.ServiceProvider is not null)
-            //  TODO: Maybe add a configuration value to pre-instantiate (or no) the job ?
-            //  Pre-instantiating might have side-effects
-            if (_configuration.ServiceProvider.GetService<TJob>() is not null)
-            {
-                _instantiableCache[type] = true;
-                return;
-            }
-
-        //  No argument-less constructor, no DI => impossible
         _instantiableCache[type] = false;
         throw new ImpossibleJobInstantiationException<TJob>();
     }
